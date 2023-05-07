@@ -1,29 +1,18 @@
-import { JoinTable, ManyToOne, OneToMany } from 'typeorm';
+import { JoinTable } from 'typeorm';
 import { ManyToMany } from 'typeorm';
 import { PrimaryGeneratedColumn } from 'typeorm';
 import { Column } from 'typeorm';
 import { Entity } from 'typeorm';
-import {Gender} from "../../enums/user-gender.enum";
-import {BaseEntity} from "../../crud/baseentity.entity";
-import {Post } from '../../post/entities/post.entity'
 
 @Entity()
-export class User extends BaseEntity{
-
-  @Column(
-      {unique: true}
-  )
+export class User {
+  @PrimaryGeneratedColumn()
+  id: string;
+  @Column()
   username: string;
-  @Column()
-  phoneNumber: string;
-  @Column()
-  gender: string;
-  @Column()
-  image: string;
   @Column()
   email: string;
   @Column()
-
   password: string;
   @ManyToMany((type) => User, {})
   @JoinTable({
@@ -38,7 +27,4 @@ export class User extends BaseEntity{
     },
   })
   friends: User[];
-
-  @OneToMany((type) => Post, (Post) => Post.owner,{cascade:true})
-  posts: Post[];
 }
