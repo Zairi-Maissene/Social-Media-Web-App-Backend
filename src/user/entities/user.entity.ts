@@ -6,13 +6,20 @@ import { Entity } from 'typeorm';
 
 @Entity()
 export class User {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("uuid")
   id: string;
   @Column()
   username: string;
   @Column()
+  phoneNumber: string;
+  @Column()
+  gender: string;
+  @Column()
+  image: string;
+  @Column()
   email: string;
   @Column()
+
   password: string;
   @ManyToMany((type) => User, {})
   @JoinTable({
