@@ -1,8 +1,10 @@
-import { JoinTable } from 'typeorm';
+
+import { JoinTable, ManyToOne, OneToMany } from 'typeorm';
 import { ManyToMany } from 'typeorm';
 import { PrimaryGeneratedColumn } from 'typeorm';
 import { Column } from 'typeorm';
 import { Entity } from 'typeorm';
+import {Post } from '../../post/entities/post.entity'
 
 @Entity()
 export class User {
@@ -27,4 +29,7 @@ export class User {
     },
   })
   friends: User[];
+
+  @OneToMany((type) => Post, (Post) => Post.owner,{cascade:true})
+  posts: Post[];
 }
