@@ -1,16 +1,18 @@
-
 import { JoinTable, ManyToOne, OneToMany } from 'typeorm';
 import { ManyToMany } from 'typeorm';
 import { PrimaryGeneratedColumn } from 'typeorm';
 import { Column } from 'typeorm';
 import { Entity } from 'typeorm';
+import {Gender} from "../../enums/user-gender.enum";
+import {BaseEntity} from "../../crud/baseentity.entity";
 import {Post } from '../../post/entities/post.entity'
 
 @Entity()
-export class User {
-  @PrimaryGeneratedColumn("uuid")
-  id: string;
-  @Column()
+export class User extends BaseEntity{
+
+  @Column(
+      {unique: true}
+  )
   username: string;
   @Column()
   phoneNumber: string;
