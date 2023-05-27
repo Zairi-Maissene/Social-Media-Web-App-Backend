@@ -50,7 +50,9 @@ export class FriendRequestService {
       throw new NotFoundException('Cannot find user with the specified id.');
     }
     const userRequests = await this.friendRequestEntityRepository.findBy({
-      reciever: user,
+
+    // reciever :user,
+      
     });
     const response = userRequests.map((request) => request.sender);
     return response;

@@ -8,6 +8,7 @@ import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import {LoginDto} from "./dto/login-user.dto";
 import {JwtService} from "@nestjs/jwt";
+import {PayloadInterface} from "../interfaces/payload.interface";
 
 @Injectable()
 export class UserService {
@@ -25,6 +26,7 @@ export class UserService {
 
   findOne(id: number) {
     return `This action returns a #${id} user`;
+
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
@@ -62,8 +64,6 @@ export class UserService {
   }
 async login (credentials : LoginDto){
     const {login, password} = credentials;
-
-    console.log(credentials)
     const user = await this.userRepository.createQueryBuilder("user")
         .where("user.userName =:login or user.email=:login or user.phoneNumber=:login",{login})
         .getOne();
@@ -72,9 +72,9 @@ async login (credentials : LoginDto){
     }
   const hashedPassword = await bcrypt.hash(password,user.salt);
     if (user.password === hashedPassword)
-    { const playload = {"username":user.username, "email":user.email,"phone Number":user.phoneNumber}
+    { const playload:PayloadInterface = {"userName":user.username, "email":user.email,"phoneNumber":user.phoneNumber}
       const jwt = await this.jwtService.sign(playload);
-
+      console.log(user)
       return {
         "access_token": jwt
       };
