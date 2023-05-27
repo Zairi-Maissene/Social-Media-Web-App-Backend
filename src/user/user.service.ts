@@ -1,4 +1,4 @@
-import {ConflictException, Injectable} from '@nestjs/common';
+import {ConflictException, Injectable, NotFoundException} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FriendRequest } from '../friend-request/entities/friend-request.entity';
@@ -6,12 +6,15 @@ import { SubscribeUser} from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
+import {LoginDto} from "./dto/login-user.dto";
+import {JwtService} from "@nestjs/jwt";
 
 @Injectable()
 export class UserService {
   constructor(
       @InjectRepository(User)
-           private userRepository: Repository<User>
+           private userRepository: Repository<User>,
+      private jwtService: JwtService
   ) {}
 
 
@@ -57,4 +60,28 @@ export class UserService {
     delete user.salt;
     return user ;
   }
+async login (credentials : LoginDto){
+    const {login, password} = credentials;
+
+    console.log(credentials)
+    const user = await this.userRepository.createQueryBuilder("user")
+        .where("user.userName =:login or user.email=:login or user.phoneNumber=:login",{login})
+        .getOne();
+    if(!user){
+      throw new NotFoundException("login  erronée ")
+    }
+  const hashedPassword = await bcrypt.hash(password,user.salt);
+    if (user.password === hashedPassword)
+    { const playload = {"username":user.username, "email":user.email,"phone Number":user.phoneNumber}
+      const jwt = await this.jwtService.sign(playload);
+
+      return {
+        "access_token": jwt
+      };
+    }
+    else
+      throw new NotFoundException("Password  erronée ")
+
+}
+
 }

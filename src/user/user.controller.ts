@@ -10,15 +10,22 @@ import {
 import { UserService } from './user.service';
 import { SubscribeUser } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import {LoginDto} from "./dto/login-user.dto";
+import {User} from "./entities/user.entity";
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-  create(@Body() createUserDto: SubscribeUser) {
+   create(@Body() createUserDto: SubscribeUser):Promise<User> {
     console.log(createUserDto)
     return  this.userService.subscribe(createUserDto);
+  }
+  @Post("/login")
+  login (@Body() credentials : LoginDto)  {
+
+    return  this.userService.login(credentials);
   }
 
   @Get()
