@@ -5,7 +5,7 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { UploadedFile, UseInterceptors } from '@nestjs/common/decorators';
 import { FileInterceptor } from '@nestjs/platform-express/';
 import {JwtAuthGuard} from "../user/Guards/jwt-auth.guard";
-import {User} from "../user/entities/user.entity";
+import { User } from '../decorators/user.decorator';
 import {Request} from 'express';
 @Controller('post')
 export class PostController {
@@ -14,13 +14,13 @@ export class PostController {
   @Post('add')
   @UseInterceptors(FileInterceptor('file'))
   @UseGuards(JwtAuthGuard)
-  async create(@Body() body :{ content: string,image:string},  @UploadedFile() file: Express.Multer.File,@Req() request:Request){
+  async create(@Body() body :{ content: string,image:string},  @UploadedFile() file: Express.Multer.File,@User() user){
 
    console.log("content :" +body.content);
    //const image = file.originalname;
     console.log('image',body.image);
 
-    const post:CreatePostDto ={"content":body.content, "imageUrl":body.image,"owner":request['user']}
+    const post:CreatePostDto ={"content":body.content, "imageUrl":body.image,"owner":user}
    return await  this.postService.addPost(post);
 
 
