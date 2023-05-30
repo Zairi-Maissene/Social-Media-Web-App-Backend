@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { Comment } from '../comment/entities/comment.entity';
 import { FriendRequest } from '../friend-request/entities/friend-request.entity';
+import { Post } from '../post/entities/post.entity';
 import { User } from './entities/user.entity';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
@@ -11,7 +13,7 @@ import {JwtStrategy} from "./strategy/passport-jwt.strategy";
 import {ConfigService} from "@nestjs/config";
 dotenv.config()
 @Module({
-  imports: [TypeOrmModule.forFeature([FriendRequest, User]),
+  imports: [TypeOrmModule.forFeature([FriendRequest, User, Post,Comment]),
   PassportModule.register({
     defaultStrategy : 'jwt'}),
     JwtModule.register({

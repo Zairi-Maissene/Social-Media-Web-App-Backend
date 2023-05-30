@@ -1,5 +1,5 @@
-import { Reusable } from "src/reusable/entities/reusable.entity";
-import { User } from "../../user/entities/user.entity";
+import { Reusable } from '../../reusable/entities/reusable.entity';
+import { User } from '../../user/entities/user.entity';
 import { Post} from "../../post/entities/post.entity";
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne } from "typeorm";
 

@@ -27,6 +27,8 @@ export class DbSeederService {
       }
 
       else { user.gender = Gender.FEMALE; user.image =`https://cdn-icons-png.flaticon.com/512/219/219969.png`;}
+      user.posts = [];
+      user.salt = "";
       users.push(user);
     }
     await this.userEntityRepository.save(users);
