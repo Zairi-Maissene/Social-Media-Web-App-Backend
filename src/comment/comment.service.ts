@@ -14,27 +14,28 @@ import { UserService } from 'src/user/user.service';
 import { PostService } from 'src/post/post.service';
 
 @Injectable()
-export class CommentService extends ReusableService<Comment>{
-  postService : PostService;
+export class CommentService extends ReusableService<Comment> {
   userService: UserService;
-  constructor (
-  
-  @InjectRepository(Comment)
-  private commentRepository:Repository<Comment>,
-  ){
-    super(commentRepository)
-   
+  constructor(
+    @InjectRepository(Comment)
+    private commentRepository: Repository<Comment>,
+    @InjectRepository(Post)
+    private postRepository: Repository<Post>,
+  ) {
+    super(commentRepository);
   }
-
-  
-  create(Dto: CreateCommentDto) {
-     const { content, postId } = Dto;
-    const comment = new Comment();
-    comment.content = content;
-    comment.post = { id: postId } as any; // Set the post relationship using postId
-
-    return this.commentRepository.save(comment);
-   
+  async create(Dto: CreateCommentDto) {
+    const post = await this.postRepository.findOneBy({ id: Dto.postId });
+    var comment = new Comment();
+    comment.post = post;
+    comment.writer = Dto.writer;
+    comment.content = Dto.content;
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    } else {
+      console.log((await post).id.toString());
+      return this.commentRepository.save(comment);
+    }
   }
 
   findAll() : Promise<Comment[]>{
@@ -45,34 +46,56 @@ export class CommentService extends ReusableService<Comment>{
     return super.findById(id.toString());
   }
 
-  update(id: string, updateCommentDto: UpdateCommentDto): Promise<Comment> {
-    return super.update(id,updateCommentDto);
+  async updateComment(
+    user: User,
+    updateCommentDto: UpdateCommentDto,
+  ): Promise<Comment> {
+    console.log(updateCommentDto.content.toString());
+    const updateComment = await this.findById(updateCommentDto.id);
+    if (updateComment) {
+      //if (updateComment.writer == user)
+      return super.update(updateComment.id, updateComment);
+      //else
+        //throw new UnauthorizedException(
+          //' only the writer can edit the comment',
+        //);
+    } else throw new NotFoundException(' comment not found ');
   }
 
-  remove(id: number) {
-    super.delete((id.toString()),);
-    return this.findAll()
+  async remove(id: number, user: User) {
+    const deletedComment = await this.findById(id.toString());
+    if (deletedComment) {
+      if (deletedComment.writer == user || deletedComment.post.owner == user)
+        super.delete(id.toString());
+      else {
+        throw new UnauthorizedException(
+          ' only the writer of the comment or the owner of post can delete the comment ',
+        );
+      }
+      return this.findAll();
+    }
   }
 
-  async getCommentsByPost(postId:number){
-    var comments = await this.commentRepository.createQueryBuilder('comment')
-    .leftJoinAndSelect('comment.post', 'post')
-    .where('post.id = :postId', { postId })
-    .getMany();
+  async getCommentsByPost(postId: number) {
+    const comments = await this.commentRepository
+      .createQueryBuilder('comment')
+      .leftJoinAndSelect('comment.post', 'post')
+      .where('post.id = :postId', { postId })
+      .getMany();
     if (!comments.length)
     throw new NotFoundException(`Comments with Post id ${postId} not found`)
     else 
     return comments
   }
- async getCommentsByWriter (writerId:number){
-    var comments = await this.commentRepository.createQueryBuilder('comment')
-    .leftJoinAndSelect('comment.writer', 'writer')
-    .where('writer.id = :writerId', { writerId })
-    .getMany();
+  async getCommentsByWriter(writerId: number) {
+    const comments = await this.commentRepository
+      .createQueryBuilder('comment')
+      .leftJoinAndSelect('comment.writer', 'writer')
+      .where('writer.id = :writerId', { writerId })
+      .getMany();
     if (!comments.length)
     throw new NotFoundException(`Comments with writer id ${writerId} not found`)
     else 
     return comments
   }
-  
 }
