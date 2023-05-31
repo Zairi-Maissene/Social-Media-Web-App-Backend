@@ -5,17 +5,18 @@ import {
   Body,
   Patch,
   Param,
-  Delete, UseGuards,
+  Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { SubscribeUser } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import {LoginDto} from "./dto/login-user.dto";
-import {User} from "./entities/user.entity";
-import {SignupValidationPipe} from "../Pipes/SignupValidationPipe";
-import {UpdateUserValidationPipe} from "../Pipes/UpdateUserValidationPipe";
+import { LoginDto } from './dto/login-user.dto';
+import { User } from './entities/user.entity';
+import { SignupValidationPipe } from '../Pipes/SignupValidationPipe';
+import { UpdateUserValidationPipe } from '../Pipes/UpdateUserValidationPipe';
 import { UsePipes } from '@nestjs/common';
-import {JwtAuthGuard} from "./Guards/jwt-auth.guard";
+import { JwtAuthGuard } from './Guards/jwt-auth.guard';
 import { User as UserDeco } from '../decorators/user.decorator';
 
 @Controller('user')
@@ -23,13 +24,13 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-   create(@Body() createUserDto: SubscribeUser):Promise<User> {
-    console.log(createUserDto)
-    return  this.userService.subscribe(createUserDto);
+  create(@Body() createUserDto: SubscribeUser): Promise<User> {
+    console.log(createUserDto);
+    return this.userService.subscribe(createUserDto);
   }
-  @Post("/login")
-  login (@Body() credentials : LoginDto)  {
-    return  this.userService.login(credentials);
+  @Post('/login')
+  login(@Body() credentials: LoginDto) {
+    return this.userService.login(credentials);
   }
 
   @Get()
@@ -43,7 +44,7 @@ export class UserController {
   }
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  update( @Body() updateUserDto: UpdateUserDto,@UserDeco() user) {
+  update(@Body() updateUserDto: UpdateUserDto, @UserDeco() user) {
     return this.userService.update(user.id, updateUserDto);
   }
 
@@ -61,13 +62,12 @@ export class UserController {
     return this.userService.getPosts(id);
   }
   @Get('/findbyname/:name')
-
   findByUserName(@Param('name') name: string) {
     return this.userService.searchByName(name);
   }
-@Get('removefriend/:friendid')
-@UseGuards(JwtAuthGuard)
-  UnfollowFriend (@Param('friendid') friendid: string,@UserDeco() user) {
-    return this.userService.Unfollow(user.id,friendid);
+  @Get('removefriend/:friendid')
+  @UseGuards(JwtAuthGuard)
+  UnfollowFriend(@Param('friendid') friendid: string, @UserDeco() user) {
+    return this.userService.Unfollow(user.id, friendid);
   }
 }

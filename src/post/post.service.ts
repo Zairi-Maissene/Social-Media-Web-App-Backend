@@ -12,12 +12,12 @@ import { Repository } from 'typeorm';
 import { CommentService } from '../comment/comment.service';
 import { UserService } from '../user/user.service';
 import { User } from '../user/entities/user.entity';
-import { Comment } from 'src/comment/entities/comment.entity';
+import { Comment } from '../comment/entities/comment.entity';
 import { FriendRequest } from 'src/friend-request/entities/friend-request.entity';
 import { JwtService } from '@nestjs/jwt';
 @Injectable()
 export class PostService extends ReusableService<Post> {
-  userService: UserService;
+
   constructor(
     @InjectRepository(Post)
     private postRepository: Repository<Post>,
@@ -26,18 +26,12 @@ export class PostService extends ReusableService<Post> {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     @InjectRepository(FriendRequest)
-
-
     private friendRequestEntityRepository: Repository<FriendRequest>,
-    private jwtService: JwtService,
+
   ) {
     super(postRepository);
 
-    this.userService = new UserService(
-      friendRequestEntityRepository,
-      userRepository,
-      jwtService,
-    );
+
   }
 
   addPost(createPostDto: CreatePostDto) {
@@ -55,12 +49,12 @@ export class PostService extends ReusableService<Post> {
 
   async updatePost(user: any, post: UpdatePostDto) {
     const updatedPost = await this.findById(post.id);
-   // if (updatedPost.owner != user) {
-     // throw new UnauthorizedException(
-       // ' Only the writer of the post can edit it ',
-      //);
+    // if (updatedPost.owner != user) {
+    // throw new UnauthorizedException(
+    // ' Only the writer of the post can edit it ',
+    //);
     //} else {
-      return this.update(post.id, post);
+    return this.update(post.id, post);
     //}
   }
 
