@@ -24,10 +24,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     async validate(payload: PayloadInterface) {
-        console.log(payload);
         const user = await this.userRepository.findOne({where :{username: payload.userName}});
         if (user) {
-            delete user.salt;
             delete user.password;
             return user;
         } else {
