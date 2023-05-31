@@ -89,7 +89,9 @@ export class UserService extends ReusableService<User> {
 
   async subscribe(userInfo: SubscribeUser): Promise<any> {
     const existingUsername = await this.searchByName(userInfo.username);
-    const user = await this.userRepository.create({ ...userInfo });
+    const password = await bcrypt.hash(userInfo.password, process.env.GLOBAL_SALT);
+    const user = await this.userRepository.create({ ...userInfo, password });
+
     try {
       await this.userRepository.save(user);
     } catch (err) {
@@ -99,9 +101,8 @@ export class UserService extends ReusableService<User> {
         throw new ConflictException(' Email must be unique');
       }
     }
-    user.password = await bcrypt.hash(user.password, process.env.GLOBAL_SALT);
 
-    delete user.password;
+
     return user;
   }
 
@@ -118,6 +119,9 @@ export class UserService extends ReusableService<User> {
       throw new NotFoundException('User not found ');
     }
     const hashedPassword = await bcrypt.hash(password, process.env.GLOBAL_SALT);
+
+
+
     if (user.password === hashedPassword) {
       const playload: PayloadInterface = {
         userName: user.username,
