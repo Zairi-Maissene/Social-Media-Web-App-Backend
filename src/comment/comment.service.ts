@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { ReusableService } from 'src/reusable/reusable.service';
@@ -26,7 +26,7 @@ export class CommentService extends ReusableService<Comment> {
   }
   async create(Dto: CreateCommentDto) {
     const post = await this.postRepository.findOneBy({ id: Dto.postId });
-    var comment = new Comment();
+    const comment = new Comment();
     comment.post = post;
     comment.writer = Dto.writer;
     comment.content = Dto.content;
@@ -38,7 +38,7 @@ export class CommentService extends ReusableService<Comment> {
     }
   }
 
-  findAll() : Promise<Comment[]>{
+  findAll(): Promise<Comment[]> {
     return super.findAll();
   }
 
@@ -56,9 +56,9 @@ export class CommentService extends ReusableService<Comment> {
       //if (updateComment.writer == user)
       return super.update(updateComment.id, updateComment);
       //else
-        //throw new UnauthorizedException(
-          //' only the writer can edit the comment',
-        //);
+      //throw new UnauthorizedException(
+      //' only the writer can edit the comment',
+      //);
     } else throw new NotFoundException(' comment not found ');
   }
 
@@ -83,9 +83,8 @@ export class CommentService extends ReusableService<Comment> {
       .where('post.id = :postId', { postId })
       .getMany();
     if (!comments.length)
-    throw new NotFoundException(`Comments with Post id ${postId} not found`)
-    else 
-    return comments
+      throw new NotFoundException(`Comments with Post id ${postId} not found`);
+    else return comments;
   }
   async getCommentsByWriter(writerId: number) {
     const comments = await this.commentRepository
@@ -94,8 +93,9 @@ export class CommentService extends ReusableService<Comment> {
       .where('writer.id = :writerId', { writerId })
       .getMany();
     if (!comments.length)
-    throw new NotFoundException(`Comments with writer id ${writerId} not found`)
-    else 
-    return comments
+      throw new NotFoundException(
+        `Comments with writer id ${writerId} not found`,
+      );
+    else return comments;
   }
 }

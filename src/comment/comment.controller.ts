@@ -11,8 +11,9 @@ import {
 import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
-import { AUser } from 'src/decorators/user.decorator';
+
 import { JwtAuthGuard } from '../user/Guards/jwt-auth.guard';
+import { User } from '../decorators/user.decorator';
 
 @Controller('comment')
 export class CommentController {
@@ -20,7 +21,11 @@ export class CommentController {
 
   @Post('add/:id')
   @UseGuards(JwtAuthGuard)
-  create(@Body() body: { content: string }, @AUser() user,@Param('id') postId:string) {
+  create(
+    @Body() body: { content: string },
+    @User() user,
+    @Param('id') postId: string,
+  ) {
     const comment: CreateCommentDto = {
       content: body.content,
       postId: postId,
@@ -41,7 +46,7 @@ export class CommentController {
 
   @Get('byWriter')
   @UseGuards(JwtAuthGuard)
-  findByWriter(@AUser() user) {
+  findByWriter(@User() user) {
     return this.commentService.getCommentsByWriter(+user.id);
   }
   @Get(':id')
@@ -54,7 +59,7 @@ export class CommentController {
   update(
     @Param('id') id: string,
     @Body('content') content: string,
-    @AUser() user,
+    @User() user,
   ) {
     const updateCommentDto = { id: id, content: content };
     return this.commentService.updateComment(user, updateCommentDto);
@@ -62,7 +67,7 @@ export class CommentController {
 
   @Delete('delete/:id')
   @UseGuards(JwtAuthGuard)
-  remove(@Param('id') id: string, @AUser() user) {
+  remove(@Param('id') id: string, @User() user) {
     return this.commentService.remove(+id, user);
   }
 }
