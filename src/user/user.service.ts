@@ -89,10 +89,7 @@ export class UserService extends ReusableService<User> {
 
   async subscribe(userInfo: SubscribeUser): Promise<any> {
     const existingUsername = await this.searchByName(userInfo.username);
-    const password = await bcrypt.hash(
-      userInfo.password,
-      process.env.GLOBAL_SALT,
-    );
+    const password = await bcrypt.hash(userInfo.password, process.env.GLOBAL_SALT);
     const user = await this.userRepository.create({ ...userInfo, password });
 
     try {
@@ -104,7 +101,6 @@ export class UserService extends ReusableService<User> {
         throw new ConflictException(' Email must be unique');
       }
     }
-
     return user;
   }
 
@@ -122,6 +118,8 @@ export class UserService extends ReusableService<User> {
     }
     const hashedPassword = await bcrypt.hash(password, process.env.GLOBAL_SALT);
 
+
+
     if (user.password === hashedPassword) {
       const playload: PayloadInterface = {
         userName: user.username,
@@ -130,8 +128,10 @@ export class UserService extends ReusableService<User> {
       };
       const jwt = await this.jwtService.sign(playload);
       console.log(user);
+      delete user.password;
       return {
         access_token: jwt,
+        user : user
       };
     } else throw new NotFoundException('Password is incorrect');
   }
