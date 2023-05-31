@@ -1,15 +1,24 @@
-import { Comment } from '../../comment/entities/comment.entity';
-import { Reusable } from '../../reusable/entities/reusable.entity';
-import { User } from '../../user/entities/user.entity';
-import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany } from 'typeorm';
+import { Comment } from 'src/comment/entities/comment.entity';
+import { Reusable } from 'src/reusable/entities/reusable.entity';
+import { User } from 'src/user/entities/user.entity';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 
 @Entity()
 export class Post extends Reusable {
   @Column()
-  content: String;
+  content: string;
   @Column()
-  imageUrl: String;
-  @ManyToOne((type) => User, {eager :true})
+  imageUrl: string;
+
+  @ManyToOne((type) => User, { eager: true })
   @JoinColumn({
     name: 'owner_id',
     referencedColumnName: 'id',
@@ -17,10 +26,10 @@ export class Post extends Reusable {
   owner: User
  
 
-  @OneToMany((type)=> Comment, (comment)=> comment.post)
-  comments : Comment[];
+  @OneToMany((type) => Comment, (comment) => comment.post, { cascade: true })
+  comments: Comment[];
 
-  @ManyToMany((type) => User, {eager :true})
+  @ManyToMany((type) => User, { eager: true })
   @JoinTable({
     name: 'likes',
     joinColumn: {
