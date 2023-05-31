@@ -4,7 +4,7 @@ import { User } from '../user/entities/user.entity';
 import { UserModule } from '../user/user.module';
 import { DbSeederService } from './db-seeder.service';
 import * as dotenv from 'dotenv';
-import {Post} from "../post/entities/post.entity";
+import { Post } from '../post/entities/post.entity';
 
 dotenv.config();
 @Module({
@@ -19,7 +19,7 @@ dotenv.config();
       autoLoadEntities: true,
       synchronize: true,
     }),
-    TypeOrmModule.forFeature([User,Post]),
+    TypeOrmModule.forFeature([User, Post]),
     UserModule,
   ],
   providers: [DbSeederService],

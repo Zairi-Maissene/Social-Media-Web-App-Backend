@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { ReusableService } from 'src/reusable/reusable.service';
@@ -24,7 +28,7 @@ export class CommentService extends ReusableService<Comment> {
   ) {
     super(commentRepository);
   }
-  async create(Dto: CreateCommentDto) {
+  async createComment(Dto: CreateCommentDto) {
     const post = await this.postRepository.findOneBy({ id: Dto.postId });
     const comment = new Comment();
     comment.post = post;
@@ -42,8 +46,8 @@ export class CommentService extends ReusableService<Comment> {
     return super.findAll();
   }
 
-  findOne(id: number) {
-    return super.findById(id.toString());
+  findOne(id: string) {
+    return super.findById(id);
   }
 
   async updateComment(
@@ -62,11 +66,11 @@ export class CommentService extends ReusableService<Comment> {
     } else throw new NotFoundException(' comment not found ');
   }
 
-  async remove(id: number, user: User) {
-    const deletedComment = await this.findById(id.toString());
+  async remove(id: string, user: User) {
+    const deletedComment = await this.findById(id);
     if (deletedComment) {
       if (deletedComment.writer == user || deletedComment.post.owner == user)
-        super.delete(id.toString());
+        super.delete(id);
       else {
         throw new UnauthorizedException(
           ' only the writer of the comment or the owner of post can delete the comment ',
@@ -76,7 +80,7 @@ export class CommentService extends ReusableService<Comment> {
     }
   }
 
-  async getCommentsByPost(postId: number) {
+  async getCommentsByPost(postId:string) {
     const comments = await this.commentRepository
       .createQueryBuilder('comment')
       .leftJoinAndSelect('comment.post', 'post')
@@ -86,7 +90,7 @@ export class CommentService extends ReusableService<Comment> {
       throw new NotFoundException(`Comments with Post id ${postId} not found`);
     else return comments;
   }
-  async getCommentsByWriter(writerId: number) {
+  async getCommentsByWriter(writerId: string) {
     const comments = await this.commentRepository
       .createQueryBuilder('comment')
       .leftJoinAndSelect('comment.writer', 'writer')

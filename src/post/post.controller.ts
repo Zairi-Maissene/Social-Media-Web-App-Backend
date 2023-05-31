@@ -23,6 +23,7 @@ export class PostController {
   constructor(private readonly postService: PostService) {}
 
   @Post('add')
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   async create(
     @Body('content') content: string,
@@ -33,8 +34,8 @@ export class PostController {
     const image = file.originalname;
     //const us = request.user;
     //console.log('logged user ' + us.email);
-    // console.log('image',body.image);
-    //console.log(' AUser : ' + user.username + user.email);
+    console.log('image' + image);
+    console.log(' User : ' + user.username);
     const post: CreatePostDto = {
       content: content,
       imageUrl: image,
@@ -46,7 +47,7 @@ export class PostController {
   @Delete('delete/:id')
   @UseGuards(JwtAuthGuard)
   async delete(@User() user, @Param('id') id) {
-    return this.postService.delete(id);
+    return this.postService.remove(id, user);
   }
 
   @Patch('update/:id')
@@ -59,14 +60,14 @@ export class PostController {
     @User() user,
   ) {
     const image = file.originalname;
-    const userid = 11;
-    //console.log('logged user ' + user.email);
+
+    console.log('logged user ' + user.username);
     const post: UpdatePostDto = {
-      id: userid.toString(),
+      id: id,
       content: content,
       imageUrl: image,
     };
-    return this.postService.updatePost(userid, post);
+    return this.postService.updatePost(user, post);
   }
 
   @Get()
@@ -76,40 +77,36 @@ export class PostController {
   }
 
   @Get('numberOFlikes/:id')
-  getNumberOfLikesById(@Param('id') id: number) {
+  @UseGuards(JwtAuthGuard)
+  getNumberOfLikesById(@Param('id') id: string) {
     return this.postService.getNumberOfLikesOfPost(id);
   }
   @Get('likes/:id')
-  getLikesById(@Param('id') id: number) {
+  @UseGuards(JwtAuthGuard)
+  getLikesById(@Param('id') id: string) {
     return this.postService.getLikesOfPost(id);
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
   findOne(@Param('id') id: string) {
-    return this.postService.findOne(+id);
+    return this.postService.findOne(id);
   }
 
   @Post('like/:id')
   @UseGuards(JwtAuthGuard)
-  async likePost(@Param('id', ParseIntPipe) id: number, @User() user) {
+  async likePost(@Param('id') id: string, @User() user) {
     console.log(user);
     return await this.postService.likePost(id, user);
   }
 
-  @Delete('dislike/:post/:userid')
-  // @UseGuards(JwtAuthGuard)
-  async dislikePost(
-    @Param('user', ParseIntPipe) userId: number,
-    @Param('post', ParseIntPipe) postId: number,
-
-    // @AUser() user,
-  ) {
-    return await this.postService.dislikePost(userId, postId);
-  }
-
-  @Get('test/user')
+  @Delete('dislike/:post')
   @UseGuards(JwtAuthGuard)
-  test(@User() user) {
-    return user;
+  async dislikePost(
+    @Param('post') postId: string,
+
+    @User() user,
+  ) {
+    return await this.postService.dislikePost(user.id, postId);
   }
 }

@@ -3,7 +3,6 @@ import { CreateCommentDto } from './create-comment.dto';
 import { UpdateReusableDto } from 'src/reusable/dto/update-reusable.dto';
 
 export class UpdateCommentDto extends UpdateReusableDto {
-    id:string;
-    content :string;
-
+  id: string;
+  content: string;
 }

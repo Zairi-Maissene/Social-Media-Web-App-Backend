@@ -23,8 +23,7 @@ export class Post extends Reusable {
     name: 'owner_id',
     referencedColumnName: 'id',
   })
-  owner: User
- 
+  owner: User;
 
   @OneToMany((type) => Comment, (comment) => comment.post, { cascade: true })
   comments: Comment[];
@@ -41,5 +40,5 @@ export class Post extends Reusable {
       referencedColumnName: 'id',
     },
   })
- likes: User[];
+  likes: User[];
 }

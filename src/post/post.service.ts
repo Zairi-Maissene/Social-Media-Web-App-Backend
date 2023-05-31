@@ -17,7 +17,6 @@ import { FriendRequest } from 'src/friend-request/entities/friend-request.entity
 import { JwtService } from '@nestjs/jwt';
 @Injectable()
 export class PostService extends ReusableService<Post> {
-
   constructor(
     @InjectRepository(Post)
     private postRepository: Repository<Post>,
@@ -27,11 +26,8 @@ export class PostService extends ReusableService<Post> {
     private userRepository: Repository<User>,
     @InjectRepository(FriendRequest)
     private friendRequestEntityRepository: Repository<FriendRequest>,
-
   ) {
     super(postRepository);
-
-
   }
 
   addPost(createPostDto: CreatePostDto) {
@@ -43,40 +39,42 @@ export class PostService extends ReusableService<Post> {
     return super.findAll();
   }
 
-  findOne(id: number): Promise<Post> {
-    return super.findById(id.toString());
+  findOne(id: string): Promise<Post> {
+    return super.findById(id);
   }
 
-  async updatePost(user: any, post: UpdatePostDto) {
+  async updatePost(user: User, post: UpdatePostDto) {
     const updatedPost = await this.findById(post.id);
-    // if (updatedPost.owner != user) {
-    // throw new UnauthorizedException(
-    // ' Only the writer of the post can edit it ',
-    //);
-    //} else {
-    return this.update(post.id, post);
-    //}
+    console.log('owner ' + updatedPost.owner.username);
+    if (updatedPost.owner.id === user.id) {
+      return this.update(post.id, post);
+    } else {
+      throw new UnauthorizedException(
+        ' Only the writer of the post can edit it ',
+      );
+    }
   }
 
   async remove(id: number, user: User) {
     const deletedPost = await this.findById(id.toString());
-    if (deletedPost.owner == user) {
+    if (deletedPost.owner.id === user.id) {
       return super.delete(id.toString());
-    } else throw new UnauthorizedException();
+    } else
+      throw new UnauthorizedException(' Only the owner can delete his post');
   }
 
-  async getNumberOfLikesOfPost(id: number): Promise<any> {
+  async getNumberOfLikesOfPost(id: string): Promise<any> {
     const post = await this.findOne(id);
     if (post) return post.likes.length;
     else throw new NotFoundException('Post not found');
   }
 
-  async getLikesOfPost(id: number): Promise<any> {
+  async getLikesOfPost(id: string): Promise<any> {
     const post = await this.findOne(id);
     if (post) return post.likes;
     else throw new NotFoundException('Post not found');
   }
-  async likePost(id: number, user: User): Promise<Post> {
+  async likePost(id: string, user: User): Promise<Post> {
     const post = await this.findOne(id);
     console.log(user);
     if (post) {
@@ -94,21 +92,19 @@ export class PostService extends ReusableService<Post> {
     return this.postRepository.save(post);
   }
 
-  async dislikePost(userId: number, postId): Promise<Post> {
+  async dislikePost(userId: string, postId): Promise<Post> {
     const post = await this.findOne(postId);
 
     if (post) {
       post.likes.forEach((e) => {
-        console.log(e.id);
+        console.log('bnj' + e.id);
       });
 
-      console.log('userid ' + userId);
-      const index = post.likes.findIndex(
-        (item) => item.id === userId.toString(),
-      );
-      if (index) {
+      const index = post.likes.findIndex((item) => item.id == userId);
+
+      if (index >= 0) {
         console.log('index user ' + index);
-        post.likes = post.likes.filter((user) => user.id != userId.toString());
+        post.likes = post.likes.filter((user) => user.id != userId);
       } else throw new NotFoundException(' User not found in list of likes');
       post.likes.forEach((e) => {
         console.log(e.id);
