@@ -5,13 +5,18 @@ import {
   Body,
   Patch,
   Param,
-  Delete,
+  Delete, UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { SubscribeUser } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import {LoginDto} from "./dto/login-user.dto";
 import {User} from "./entities/user.entity";
+import {SignupValidationPipe} from "../Pipes/SignupValidationPipe";
+import {UpdateUserValidationPipe} from "../Pipes/UpdateUserValidationPipe";
+import { UsePipes } from '@nestjs/common';
+import {JwtAuthGuard} from "./Guards/jwt-auth.guard";
+import { User as UserDeco } from '../decorators/user.decorator';
 
 @Controller('user')
 export class UserController {
@@ -24,7 +29,6 @@ export class UserController {
   }
   @Post("/login")
   login (@Body() credentials : LoginDto)  {
-
     return  this.userService.login(credentials);
   }
 
@@ -33,18 +37,37 @@ export class UserController {
     return this.userService.getALLUsers();
   }
 
-  @Get(':id')
+  @Get('/findone/:id')
   findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
+    return this.userService.findById(id);
   }
-
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
+  @UseGuards(JwtAuthGuard)
+  update( @Body() updateUserDto: UpdateUserDto,@UserDeco() user) {
+    return this.userService.update(user.id, updateUserDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+  @UseGuards(JwtAuthGuard)
+  remove(@UserDeco() user) {
+    return this.userService.delete(user.id);
+  }
+  @Get('/friends/:id')
+  async getAllFriends(@Param('id') id: string) {
+    return this.userService.getFriends(id);
+  }
+  @Get('/posts/:id')
+  async getAllPosts(@Param('id') id: string) {
+    return this.userService.getPosts(id);
+  }
+  @Get('/findbyname/:name')
+
+  findByUserName(@Param('name') name: string) {
+    return this.userService.searchByName(name);
+  }
+@Get('removefriend/:friendid')
+@UseGuards(JwtAuthGuard)
+  UnfollowFriend (@Param('friendid') friendid: string,@UserDeco() user) {
+    return this.userService.Unfollow(user.id,friendid);
   }
 }

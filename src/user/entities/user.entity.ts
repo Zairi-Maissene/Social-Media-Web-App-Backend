@@ -8,9 +8,10 @@ import {Gender} from "../../enums/user-gender.enum";
 import {BaseEntity} from "../../crud/baseentity.entity";
 
 import {Post } from '../../post/entities/post.entity'
+import {Reusable} from "../../reusable/entities/reusable.entity";
 
 @Entity()
-export class User extends BaseEntity{
+export class User extends Reusable{
 
   @Column(
       {unique: true}
@@ -34,8 +35,7 @@ export class User extends BaseEntity{
 
   password: string;
 
-  @Column()
-  salt: string;
+
   @ManyToMany((type) => User, {})
   @JoinTable({
     name: 'friends',

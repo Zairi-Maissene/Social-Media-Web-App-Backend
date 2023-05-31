@@ -19,42 +19,54 @@ export abstract class ReusableService<T extends Reusable> {
   }
 
   async findAll(): Promise<any> {
-    return this.repository.find();
+      return this.repository.find();
+
   }
 
   async findById(id: string): Promise<any> {
     return this.repository.findOneBy({ id: id } as FindOptionsWhere<T>);
+
+    }
+
+  async update(id: string, dto: UpdateReusableDto): Promise<any> {
+
+      const entity = await this.repository.findOneBy({
+        id: id,
+      } as FindOptionsWhere<T>);
+
+      Object.assign(entity, dto);
+      return this.repository.save(entity);
+
+
   }
 
-  async update(id: string, dto: UpdateReusableDto): Promise<T> {
-    const entity = await this.repository.findOneBy({
-      id: id,
-    } as FindOptionsWhere<T>);
+  async delete(id: string): Promise<any> {
 
-    Object.assign(entity, dto);
-    return this.repository.save(entity);
-  }
-
-  async delete(id: string): Promise<void> {
     const result = await this.repository.delete(id);
     if (!result.affected)
       throw new NotFoundException(`L'objet  d'id ${id} n'existe pas `);
+
   }
 
   //soft delete
-  async softDelete2(id: string, userId: string): Promise<UpdateReusableDto> {
-    // if (userId == (await this.findById(id)).userId){
-    const result = await this.repository.softDelete(id);
-    if (result.affected) return result;
-    else throw new NotFoundException(`L'objet  d'id ${id} n'existe pas `);
+  async softDelete(id: string,errorMessage:string): Promise<any> {
+
+     // if (userId == (await this.findById(id)).userId){
+     const result = await this.repository.softDelete(id);
+     if (result.affected) return result;
+     else throw new NotFoundException(errorMessage);
+
   }
   //  else {
   //   throw new  UnauthorizedException();
   //  }
 
   async restoretodo2(id: string, userId: string) {
+
     const result = await this.repository.restore(id);
     if (result.affected) return result;
     else throw new NotFoundException(`L' objet  d'id ${id} n'existe pas `);
-  }
+    }
+
+
 }

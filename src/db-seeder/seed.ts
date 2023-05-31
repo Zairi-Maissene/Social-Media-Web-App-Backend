@@ -7,6 +7,7 @@ async function bootstrap() {
   const seedService = dbSeedApp.get(DbSeederService);
   console.log('Initializing database...');
   await seedService.seedDataBase();
+  await seedService.seedDataBasePosts();
   console.log('Done!');
   await dbSeedApp.close();
 }
