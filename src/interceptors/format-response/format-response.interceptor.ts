@@ -1,4 +1,9 @@
-import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
+import {
+  CallHandler,
+  ExecutionContext,
+  Injectable,
+  NestInterceptor,
+} from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -6,9 +11,10 @@ import { map } from 'rxjs/operators';
 export class FormatResponseInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
-        map(data => ({
-          success: true,
-          data,
-        })),
+      map((data) => ({
+        success: true,
+        data,
+      })),
     );
-  }}
+  }
+}

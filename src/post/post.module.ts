@@ -9,23 +9,22 @@ import { FriendRequest } from '../friend-request/entities/friend-request.entity'
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 
-
-
-
 @Module({
-  imports: [TypeOrmModule.forFeature([Post, User, Comment,FriendRequest]),
-  MulterModule.register({
-    storage: diskStorage({
-      destination: function (req, file, cb) {
-        cb(null, './postUploads');
-      },
-      filename: function (req, file, cb) {
-        const name = file.originalname;
-        cb(null, `${name}`);
-      }
-  })})
-],
+  imports: [
+    TypeOrmModule.forFeature([Post, User, Comment, FriendRequest]),
+    MulterModule.register({
+      storage: diskStorage({
+        destination: function (req, file, cb) {
+          cb(null, './postUploads');
+        },
+        filename: function (req, file, cb) {
+          const name = file.originalname;
+          cb(null, `${name}`);
+        },
+      }),
+    }),
+  ],
   controllers: [PostController],
-  providers: [PostService]
+  providers: [PostService],
 })
 export class PostModule {}

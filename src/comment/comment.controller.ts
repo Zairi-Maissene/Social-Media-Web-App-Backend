@@ -35,23 +35,24 @@ export class CommentController {
   }
 
   @Get('all')
+  @UseGuards(JwtAuthGuard)
   findAll() {
     return this.commentService.findAll();
   }
 
   @Get('byPost/:id')
   findByPost(@Param('id') id: string) {
-    return this.commentService.getCommentsByPost(+id);
+    return this.commentService.getCommentsByPost(id);
   }
 
   @Get('byWriter')
   @UseGuards(JwtAuthGuard)
   findByWriter(@User() user) {
-    return this.commentService.getCommentsByWriter(+user.id);
+    return this.commentService.getCommentsByWriter(user.id);
   }
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.commentService.findOne(+id);
+    return this.commentService.findOne(id);
   }
 
   @Patch('update/:id')
@@ -68,6 +69,6 @@ export class CommentController {
   @Delete('delete/:id')
   @UseGuards(JwtAuthGuard)
   remove(@Param('id') id: string, @User() user) {
-    return this.commentService.remove(+id, user);
+    return this.commentService.remove(id, user);
   }
 }

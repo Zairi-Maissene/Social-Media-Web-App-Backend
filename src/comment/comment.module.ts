@@ -8,10 +8,8 @@ import { Post } from 'src/post/entities/post.entity';
 import { FriendRequest } from 'src/friend-request/entities/friend-request.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Post, User, Comment,FriendRequest])
-  ],
+  imports: [TypeOrmModule.forFeature([Post, User, Comment, FriendRequest])],
   controllers: [CommentController],
-  providers: [CommentService]
+  providers: [CommentService],
 })
 export class CommentModule {}

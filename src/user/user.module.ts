@@ -6,23 +6,26 @@ import { Post } from '../post/entities/post.entity';
 import { User } from './entities/user.entity';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
-import {PassportModule} from "@nestjs/passport";
-import {JwtModule} from "@nestjs/jwt";
-import * as dotenv from 'dotenv'
-import {JwtStrategy} from "./strategy/passport-jwt.strategy";
-import {ConfigService} from "@nestjs/config";
-dotenv.config()
+import { PassportModule } from '@nestjs/passport';
+import { JwtModule } from '@nestjs/jwt';
+import * as dotenv from 'dotenv';
+import { JwtStrategy } from './strategy/passport-jwt.strategy';
+import { ConfigService } from '@nestjs/config';
+dotenv.config();
 @Module({
-  imports: [TypeOrmModule.forFeature([FriendRequest, User, Post,Comment]),
-  PassportModule.register({
-    defaultStrategy : 'jwt'}),
+  imports: [
+    TypeOrmModule.forFeature([FriendRequest, User, Post, Comment]),
+    PassportModule.register({
+      defaultStrategy: 'jwt',
+    }),
     JwtModule.register({
-    secret:process.env.SECRET,
+      secret: process.env.SECRET,
       signOptions: {
-        expiresIn: 3600
-      }
-  })],
+        expiresIn: 3600,
+      },
+    }),
+  ],
   controllers: [UserController],
-  providers: [UserService,JwtStrategy,ConfigService],
+  providers: [UserService, JwtStrategy, ConfigService],
 })
 export class UserModule {}
