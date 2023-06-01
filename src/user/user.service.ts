@@ -61,7 +61,7 @@ export class UserService extends ReusableService<User> {
     const user = await this.userRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.friends', 'friend')
-      .select(['user.id', 'friend.id', 'friend.username','user.username'])
+      .select(['user.id', 'friend.id', 'friend.username', 'user.username'])
       .where('user.id = :userId', { userId })
       .getOne();
     if (!user) {
@@ -91,7 +91,10 @@ export class UserService extends ReusableService<User> {
 
   async subscribe(userInfo: SubscribeUser): Promise<any> {
     const existingUsername = await this.searchByName(userInfo.username);
-    const password = await bcrypt.hash(userInfo.password, process.env.GLOBAL_SALT);
+    const password = await bcrypt.hash(
+      userInfo.password,
+      process.env.GLOBAL_SALT,
+    );
     const user = await this.userRepository.create({ ...userInfo, password });
 
     try {
@@ -120,8 +123,6 @@ export class UserService extends ReusableService<User> {
     }
     const hashedPassword = await bcrypt.hash(password, process.env.GLOBAL_SALT);
 
-
-
     if (user.password === hashedPassword) {
       const playload: PayloadInterface = {
         userName: user.username,
@@ -133,18 +134,21 @@ export class UserService extends ReusableService<User> {
       delete user.password;
       return {
         access_token: jwt,
-        user : user
+        user: user,
       };
     } else throw new NotFoundException('Password is incorrect');
   }
   async Unfollow(userId: string, friendId: string) {
-     try {
+    try {
       const user = await this.userRepository
-          .createQueryBuilder()
-          .delete()
-          .from('friends')
-          .where('(user1 = :userId AND user2 = :friendId) OR (user1 = :friendId AND user2 = :userId)', { userId, friendId })
-          .execute();
+        .createQueryBuilder()
+        .delete()
+        .from('friends')
+        .where(
+          '(user1 = :userId AND user2 = :friendId) OR (user1 = :friendId AND user2 = :userId)',
+          { userId, friendId },
+        )
+        .execute();
       return user;
     } catch (error) {
       if (error instanceof QueryFailedError) {
@@ -155,19 +159,17 @@ export class UserService extends ReusableService<User> {
         throw error;
       }
     }
-
-
-
-
   }
   async isAFriend(userId: string, friendId: string) {
-    const user = await this.getFriends(userId)
-    const user2 = await this.getFriends(friendId)
-    const friend = user.friends.find(friend => friend.id === friendId)
-    const friend2 = user2.friends.find(friend => friend.id === userId)
+    const user = await this.getFriends(userId);
+    const user2 = await this.getFriends(friendId);
+    const friend = user.friends.find((friend) => friend.id === friendId);
+    const friend2 = user2.friends.find((friend) => friend.id === userId);
     return (
-        "2 is friend to 1 " + (friend ? true : false) +
-        " 1 is friend to 2 " + (friend2 ? true : false)
-    );  }
-
+      '2 is friend to 1 ' +
+      (friend ? true : false) +
+      ' 1 is friend to 2 ' +
+      (friend2 ? true : false)
+    );
+  }
 }

@@ -31,8 +31,6 @@ export class PostController {
   ) {
     console.log('content :' + content);
     const image = file?.originalname || '';
-    //const us = request.user;
-    //console.log('logged user ' + us.email);
     console.log('image' + image);
     console.log(' User : ' + user.username);
     const post: CreatePostDto = {
@@ -63,7 +61,7 @@ export class PostController {
     console.log('logged user ' + user.username);
     const post: UpdatePostDto = {
       id: id,
-      content: content,
+      content: content ?? '',
       imageUrl: image,
     };
     return this.postService.updatePost(user, post);
@@ -86,8 +84,6 @@ export class PostController {
     return this.postService.getLikesOfPost(id);
   }
 
-
-
   @Post('like/:id')
   @UseGuards(JwtAuthGuard)
   async likePost(@Param('id') id: string, @User() user) {
@@ -105,20 +101,25 @@ export class PostController {
     return await this.postService.dislikePost(user.id, postId);
   }
 
-  @Get('byPost/:id')
+  @Get('getcomments/:id')
   findByPost(@Param('id') id: string) {
     return this.postService.getCommentsByPost(id);
   }
-  @Get('OfMyFriends')
+  @Get('getbyfriends')
   @UseGuards(JwtAuthGuard)
   async getPostsOfFriends(@User() user) {
-    console.log('hii');
-    return await this.postService.getPostsOfMyFriends(user);
+    return await this.postService.getPostsOfMyFriends(user.id);
   }
 
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   findOne(@Param('id') id: string) {
     return this.postService.findOne(id);
+  }
+
+  @Get('getbysuser:id')
+  @UseGuards(JwtAuthGuard)
+  async getPostsofUser(@User() user) {
+    return this.postService.getPostsOfUser(user.id);
   }
 }
