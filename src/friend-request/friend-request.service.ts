@@ -47,11 +47,11 @@ export class FriendRequestService {
       throw new ForbiddenException();
     }
     const userWithFriends = await this.userEntityRepository.findOne({
-        where:  {id: user.id},
-        relations: ['friends'],
-        });
+      where: { id: user.id },
+      relations: ['friends'],
+    });
     console.log(userWithFriends);
-    const newFriends = userWithFriends.friends || []
+    const newFriends = userWithFriends.friends || [];
     newFriends.push(request.sender);
     await this.friendRequestEntityRepository.delete(requestId);
     const newUser = { ...user, friends: newFriends };
@@ -72,7 +72,11 @@ export class FriendRequestService {
       }
     });
     console.log(recievedRequests.length);
-    const response = recievedRequests.map((request) => ({sender:request.sender,requestId:request.id , requestDate:request.createdAt}));
+    const response = recievedRequests.map((request) => ({
+      sender: request.sender,
+      requestId: request.id,
+      requestDate: request.createdAt,
+    }));
     return response;
   }
   async getAllSent(userId: string) {

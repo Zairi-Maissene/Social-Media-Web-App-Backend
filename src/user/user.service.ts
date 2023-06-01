@@ -163,8 +163,6 @@ export class UserService extends ReusableService<User> {
     const friends = await this.getFriends(userId);
     const friends2 = await this.getFriends(friendId);
 
-    return (
-      friends || friends2 ? true : false
-    );
+    return friends || friends2 ? true : false;
   }
 }
