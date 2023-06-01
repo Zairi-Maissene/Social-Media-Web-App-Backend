@@ -75,7 +75,7 @@ export class CommentService extends ReusableService<Comment> {
     if (deletedComment) {
       if (
         deletedComment.writer.id == user.id ||
-        deletedComment.post.owner.id == user
+        deletedComment.post.owner.id == user.id
       )
         super.delete(id);
       else {

@@ -17,6 +17,7 @@ import { FriendRequest } from 'src/friend-request/entities/friend-request.entity
 import { JwtService } from '@nestjs/jwt';
 @Injectable()
 export class PostService extends ReusableService<Post> {
+  private userService: any;
   constructor(
     @InjectRepository(Post)
     private postRepository: Repository<Post>,
@@ -125,34 +126,42 @@ export class PostService extends ReusableService<Post> {
     return post.comments;
   }
 
-  async getPostsOfMyFriends(user: User) {
+  async getPostsOfMyFriends(userId: string) {
+    const allPosts = [];
+    const user: User = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: {
+        friends: true,
+      },
+    });
+    const friends = user.friends;
 
-    var allPosts = [];
-    var friends;
-    if (user.friends) {
-      friends = user.friends;
-    } else {
-      friends = [];
-    }
-    console.log('friends' + user.friends.length);
-    if (friends.length != 0) {
-      for (const e of friends) {
-        const id = e.id;
-        const posts = await this.postRepository
-          .createQueryBuilder('post')
-          .leftJoinAndSelect('post.owner', 'owner')
-          .where('post.owner.id = :userId', { id })
-          .getMany();
+    console.log('friends' + friends);
 
-        console.log(posts);
-        allPosts.push(posts);
-      }
+    for (const e of friends) {
+      const id = e.id;
+      const posts: Post[] = await this.getPostsOfUser(e.id);
+      console.log(posts);
+      allPosts.push(posts);
     }
+
     return allPosts;
   }
   async getNumberOfCommentsOfPost(id: string): Promise<any> {
     const post = await this.findOne(id);
     if (post) return post.comments.length;
     else throw new NotFoundException('Post not found');
+  }
+
+  async getPostsOfUser(id: string): Promise<Post[]> {
+    const posts = await this.postRepository
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.owner', 'owner')
+      .where('owner.id = :id', { id })
+      .getMany();
+
+    console.log(posts);
+    if (posts) return posts;
+    else throw new NotFoundException('this user does not have posts');
   }
 }
