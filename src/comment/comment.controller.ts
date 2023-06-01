@@ -31,7 +31,7 @@ export class CommentController {
       postId: postId,
       writer: user,
     };
-    return this.commentService.create(comment);
+    return this.commentService.createComment(comment);
   }
 
   @Get('all')
@@ -62,6 +62,7 @@ export class CommentController {
     @Body('content') content: string,
     @User() user,
   ) {
+    console.log(content);
     const updateCommentDto = { id: id, content: content };
     return this.commentService.updateComment(user, updateCommentDto);
   }

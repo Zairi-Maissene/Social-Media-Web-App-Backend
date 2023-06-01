@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { ForbiddenException } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -15,19 +15,28 @@ export class FriendRequestService {
     private friendRequestEntityRepository: Repository<FriendRequest>,
     @InjectRepository(User) private userEntityRepository: Repository<User>,
   ) {}
-  async create(createFriendRequestDto: CreateFriendRequestDto) {
-    const users = await this.userEntityRepository.find({ take: 2 });
+  async create(createFriendRequestDto: CreateFriendRequestDto, user: User) {
     const friendRequest = new FriendRequest();
-    friendRequest.sender = users[0];
-    friendRequest.reciever = users[1];
+    const reciever = await this.userEntityRepository.findOneBy({
+      id: createFriendRequestDto.reciever_id,
+    });
+
+    friendRequest.sender = user;
+    friendRequest.reciever = reciever;
     return await this.friendRequestEntityRepository.save(friendRequest);
   }
-
-  async acceptRequest(requestId: string) {
-    const users = await this.userEntityRepository.find({
-      take: 2,
-      relations: ['friends'],
+  async refuse(id: string, user: User) {
+    const request = await this.friendRequestEntityRepository.findOneBy({
+      id: id,
     });
+    if (request.reciever.id == user.id || request.sender.id == user.id) {
+      return await this.friendRequestEntityRepository.delete(request.id);
+    } else
+      throw new UnauthorizedException(
+        ' only sender or reciever can delete the request ',
+      );
+  }
+  async acceptRequest(requestId: string, user: User) {
     const request = await this.friendRequestEntityRepository.findOneBy({
       id: requestId,
     });
@@ -35,36 +44,61 @@ export class FriendRequestService {
       throw new NotFoundException();
     }
 
-    if (request.reciever.id !== users[1].id) {
+    if (request.reciever.id !== user.id) {
       throw new ForbiddenException();
     }
-    console.log(users[1]);
-    const newFriends = [...users[1].friends, request.sender];
-    const newUser = { ...users[1], friends: newFriends };
-    await this.userEntityRepository.save(newUser);
+    console.log(user);
+    const newFriends = [];
+    if (user.friends) {
+      user.friends.push(request.sender);
+    } else {
+      user.friends = newFriends;
+      user.friends.push(request.sender);
+    }
+    await this.friendRequestEntityRepository.delete(requestId);
+
+    //  const newUser = { ...user, friends: newFriends };
+    await this.userEntityRepository.save(user);
   }
-  async getAll(userId: string) {
+
+  async getAllRecieved(userId: string) {
     console.log(userId);
     const user = await this.userEntityRepository.findOneBy({ id: userId });
     if (!user) {
       throw new NotFoundException('Cannot find user with the specified id.');
     }
-    const userRequests = await this.friendRequestEntityRepository.findBy({
-      // reciever :user,
+    const userRequests = await this.friendRequestEntityRepository.find();
+    let recievedRequests = [];
+    userRequests.forEach((e) => {
+      if (e.reciever.id == user.id) {
+        recievedRequests.push(e);
+      }
     });
-    const response = userRequests.map((request) => request.sender);
+    console.log(recievedRequests.length);
+    const response = recievedRequests.map((request) => request.sender);
+    return response;
+  }
+  async getAllSent(userId: string) {
+    console.log(userId);
+    const user = await this.userEntityRepository.findOneBy({ id: userId });
+    if (!user) {
+      throw new NotFoundException('Cannot find user with the specified id.');
+    }
+    const userRequests = await this.friendRequestEntityRepository.find();
+    const sentRequests = [];
+    userRequests.forEach((e) => {
+      if (e.sender.id == user.id) {
+        sentRequests.push(e);
+      }
+    });
+    console.log(sentRequests.length);
+    const response = sentRequests.map((request) => request.reciever);
     return response;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} friendRequest`;
-  }
-
-  update(id: number, updateFriendRequestDto: UpdateFriendRequestDto) {
-    return `This action updates a #${id} friendRequest`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} friendRequest`;
+  async findOne(id: string) {
+    return await this.friendRequestEntityRepository.findOneBy({
+      id: id,
+    });
   }
 }

@@ -6,7 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  ParseIntPipe,
   UseGuards,
   Req,
 } from '@nestjs/common';
@@ -31,7 +30,7 @@ export class PostController {
     @User() user,
   ) {
     console.log('content :' + content);
-    const image = file.originalname;
+    const image = file?.originalname || '';
     //const us = request.user;
     //console.log('logged user ' + us.email);
     console.log('image' + image);
@@ -59,7 +58,7 @@ export class PostController {
     @Body('content') content: string,
     @User() user,
   ) {
-    const image = file.originalname;
+    const image = file?.originalname || '';
 
     console.log('logged user ' + user.username);
     const post: UpdatePostDto = {
@@ -87,11 +86,7 @@ export class PostController {
     return this.postService.getLikesOfPost(id);
   }
 
-  @Get(':id')
-  @UseGuards(JwtAuthGuard)
-  findOne(@Param('id') id: string) {
-    return this.postService.findOne(id);
-  }
+
 
   @Post('like/:id')
   @UseGuards(JwtAuthGuard)
@@ -108,5 +103,22 @@ export class PostController {
     @User() user,
   ) {
     return await this.postService.dislikePost(user.id, postId);
+  }
+
+  @Get('byPost/:id')
+  findByPost(@Param('id') id: string) {
+    return this.postService.getCommentsByPost(id);
+  }
+  @Get('OfMyFriends')
+  @UseGuards(JwtAuthGuard)
+  async getPostsOfFriends(@User() user) {
+    console.log('hii');
+    return await this.postService.getPostsOfMyFriends(user);
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  findOne(@Param('id') id: string) {
+    return this.postService.findOne(id);
   }
 }

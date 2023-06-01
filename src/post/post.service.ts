@@ -115,4 +115,44 @@ export class PostService extends ReusableService<Post> {
 
     return this.postRepository.save(post);
   }
+  async getCommentsByPost(postId: string) {
+    const post = await this.postRepository
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.comments', 'comment')
+      .select(['post.id', 'comment.id', 'comment.content'])
+      .where('post.id = :postId', { postId })
+      .getOne();
+    return post.comments;
+  }
+
+  async getPostsOfMyFriends(user: User) {
+
+    var allPosts = [];
+    var friends;
+    if (user.friends) {
+      friends = user.friends;
+    } else {
+      friends = [];
+    }
+    console.log('friends' + user.friends.length);
+    if (friends.length != 0) {
+      for (const e of friends) {
+        const id = e.id;
+        const posts = await this.postRepository
+          .createQueryBuilder('post')
+          .leftJoinAndSelect('post.owner', 'owner')
+          .where('post.owner.id = :userId', { id })
+          .getMany();
+
+        console.log(posts);
+        allPosts.push(posts);
+      }
+    }
+    return allPosts;
+  }
+  async getNumberOfCommentsOfPost(id: string): Promise<any> {
+    const post = await this.findOne(id);
+    if (post) return post.comments.length;
+    else throw new NotFoundException('Post not found');
+  }
 }
