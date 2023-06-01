@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import {FindOptionsWhere, Repository} from 'typeorm';
 import { FriendRequest } from '../friend-request/entities/friend-request.entity';
 import { SubscribeUser } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -22,9 +22,12 @@ dotenv.config();
 @Injectable()
 export class UserService extends ReusableService<User> {
   notFoundMessage = 'User not found';
+
   constructor(
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
+      @InjectRepository(User)
+      private userRepository: Repository<User>,
+      @InjectRepository(FriendRequest)
+      private friendRequestRepository: Repository<FriendRequest>,
     private jwtService: JwtService,
   ) {
     super(userRepository);
@@ -34,8 +37,43 @@ export class UserService extends ReusableService<User> {
     return super.findAll();
   }
 
-  async findById(id: string) {
-    return super.findById(id);
+  async findUser(id: string,userId: string){
+
+    const searchedUser = await super.findById(id);
+    const response = {userFriendship: "notFriend",searchedUser: searchedUser,};
+    if(id===userId) {
+      const userFriendship="admin"
+      response.userFriendship=userFriendship;
+    }
+
+    if(await this.isAFriend(userId,id)==true) {
+      const userFriendship = "friend"
+      response.userFriendship = userFriendship;
+    }
+
+
+
+    if( await this.friendRequestRepository
+            .createQueryBuilder("friendRequest")
+            .where("friendRequest.sender_id = :id", { id })
+            .getOne()
+        !=null)
+    {
+      const userFriendship = "recievedRequest"
+      response.userFriendship = userFriendship;
+    }
+    if( await this.friendRequestRepository
+            .createQueryBuilder("friendRequest")
+            .where("friendRequest.sender_id = :userId", { userId })
+            .getOne()
+        !=null)
+    {
+      const userFriendship = "sentRequest"
+      response.userFriendship = userFriendship;
+    }
+
+
+    return response  ;
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
@@ -160,11 +198,9 @@ export class UserService extends ReusableService<User> {
     }
   }
   async isAFriend(userId: string, friendId: string) {
-    const friends = await this.getFriends(userId);
-    const friends2 = await this.getFriends(friendId);
+    const friends=await this.getFriends(userId);
 
-    return (
-      friends || friends2 ? true : false
-    );
+return friends?.filter((friend)=>friend.id===friendId).length>0;
   }
+
 }
