@@ -15,7 +15,7 @@ import { diskStorage } from 'multer';
     MulterModule.register({
       storage: diskStorage({
         destination: function (req, file, cb) {
-          cb(null, './postUploads');
+          cb(null, process.env.STORAGE_URL);
         },
         filename: function (req, file, cb) {
           const name = file.originalname;
