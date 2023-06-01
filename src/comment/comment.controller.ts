@@ -14,6 +14,7 @@ import { UpdateCommentDto } from './dto/update-comment.dto';
 
 import { JwtAuthGuard } from '../user/Guards/jwt-auth.guard';
 import { User } from '../decorators/user.decorator';
+import { SentCommentDto } from './dto/sent-comment.dto';
 
 @Controller('comment')
 export class CommentController {
@@ -22,12 +23,12 @@ export class CommentController {
   @Post('add/:id')
   @UseGuards(JwtAuthGuard)
   create(
-    @Body() body: { content: string },
+    @Body('content') body: { comment: CreateCommentDto },
     @User() user,
     @Param('id') postId: string,
   ) {
-    const comment: CreateCommentDto = {
-      content: body.content,
+    const comment: SentCommentDto = {
+      content: body.comment.content,
       postId: postId,
       writer: user,
     };
@@ -40,16 +41,11 @@ export class CommentController {
     return this.commentService.findAll();
   }
 
-  @Get('byPost/:id')
-  findByPost(@Param('id') id: string) {
-    return this.commentService.getCommentsByPost(id);
-  }
-
-  @Get('byWriter')
+  /*@Get('byWriter')
   @UseGuards(JwtAuthGuard)
   findByWriter(@User() user) {
     return this.commentService.getCommentsByWriter(user.id);
-  }
+  }*/
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.commentService.findOne(id);
@@ -59,11 +55,10 @@ export class CommentController {
   @UseGuards(JwtAuthGuard)
   update(
     @Param('id') id: string,
-    @Body('content') content: string,
+    @Body('content') comment: CreateCommentDto,
     @User() user,
   ) {
-    console.log(content);
-    const updateCommentDto = { id: id, content: content };
+    const updateCommentDto = { id: id, content: comment.content };
     return this.commentService.updateComment(user, updateCommentDto);
   }
 
