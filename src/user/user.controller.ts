@@ -65,9 +65,20 @@ export class UserController {
   findByUserName(@Param('name') name: string) {
     return this.userService.searchByName(name);
   }
-  @Get('removefriend/:friendid')
+  @Delete('friend/removefriend/:userid/:friendid')
+  UnfollowFriend(@Param('friendid') friendid: string,@Param('userid') userid: string, @UserDeco() user) {
+    return this.userService.Unfollow(userid, friendid);
+  }
+  @Get('/friend/isafriend/:userid/:friendid')
+  IsAFriend(@Param('friendid') friendid: string,@Param('userid') userid: string, @UserDeco() user) {
+    return this.userService.isAFriend(userid, friendid);
+  }
+
+  @Get('/friends')
   @UseGuards(JwtAuthGuard)
-  UnfollowFriend(@Param('friendid') friendid: string, @UserDeco() user) {
-    return this.userService.Unfollow(user.id, friendid);
+  async getFriends(
+    @UserDeco() user
+  ){
+    return await this.userService.getFriends(user.id);
   }
 }

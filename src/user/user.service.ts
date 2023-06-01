@@ -15,6 +15,8 @@ import { JwtService } from '@nestjs/jwt';
 import { PayloadInterface } from '../interfaces/payload.interface';
 import { ReusableService } from '../reusable/reusable.service';
 import * as dotenv from 'dotenv';
+import { QueryFailedError } from 'typeorm/error/QueryFailedError';
+
 dotenv.config();
 
 @Injectable()
@@ -59,7 +61,7 @@ export class UserService extends ReusableService<User> {
     const user = await this.userRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.friends', 'friend')
-      .select(['user.id', 'friend.id', 'friend.username'])
+      .select(['user.id', 'friend.id', 'friend.username','user.username'])
       .where('user.id = :userId', { userId })
       .getOne();
     if (!user) {
@@ -136,18 +138,36 @@ export class UserService extends ReusableService<User> {
     } else throw new NotFoundException('Password is incorrect');
   }
   async Unfollow(userId: string, friendId: string) {
-    const user = await this.userRepository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.friends', 'friend')
-      .select(['user.id', 'friend.id', 'friend.username'])
-      .where('user.id = :userId', { userId })
-      .getOne();
-    const newFriendList = user.friends.filter(
-      (friend) => friend.id !== friendId,
-    );
-    user.friends = newFriendList;
-    await this.userRepository.save(user);
+     try {
+      const user = await this.userRepository
+          .createQueryBuilder()
+          .delete()
+          .from('friends')
+          .where('(user1 = :userId AND user2 = :friendId) OR (user1 = :friendId AND user2 = :userId)', { userId, friendId })
+          .execute();
+      return user;
+    } catch (error) {
+      if (error instanceof QueryFailedError) {
+        // Handle specific database query errors
+        throw new Error('Failed to delete friend from the friends table');
+      } else {
+        // Handle other unexpected errors
+        throw error;
+      }
+    }
 
-    return this.getFriends(userId);
+
+
+
   }
+  async isAFriend(userId: string, friendId: string) {
+    const user = await this.getFriends(userId)
+    const user2 = await this.getFriends(friendId)
+    const friend = user.friends.find(friend => friend.id === friendId)
+    const friend2 = user2.friends.find(friend => friend.id === userId)
+    return (
+        "2 is friend to 1 " + (friend ? true : false) +
+        " 1 is friend to 2 " + (friend2 ? true : false)
+    );  }
+
 }
