@@ -28,7 +28,6 @@ export class FriendRequestController {
   acceptRequest(@Param('requestId') requestId: string, @User() user) {
     return this.friendRequestService.acceptRequest(requestId, user);
   }
-
   @Get('sent')
   @UseGuards(JwtAuthGuard)
   findAllSent(@User() user) {
@@ -39,7 +38,7 @@ export class FriendRequestController {
   findAllRecieved(@User() user) {
     return this.friendRequestService.getAllRecieved(user.id);
   }
-  @Get(':id')
+  @Get('/findone/:id')
   findOne(@Param('id') id: string) {
     return this.friendRequestService.findOne(id);
   }
