@@ -93,33 +93,30 @@ export class PostController {
 
   @Delete('dislike/:post')
   @UseGuards(JwtAuthGuard)
-  async dislikePost(
-    @Param('post') postId: string,
-
-    @User() user,
-  ) {
+  async dislikePost(@Param('post') postId: string, @User() user) {
     return await this.postService.dislikePost(user.id, postId);
   }
 
-  @Get('getcomments/:id')
+  @Get('get-comments/:id')
   findByPost(@Param('id') id: string) {
     return this.postService.getCommentsByPost(id);
   }
-  @Get('getbyfriends')
+
+  @Get('get-by-friends')
   @UseGuards(JwtAuthGuard)
   async getPostsOfFriends(@User() user) {
     return await this.postService.getPostsOfMyFriends(user.id);
+  }
+
+  @Get('get-by-user/:userId')
+  @UseGuards(JwtAuthGuard)
+  async getPostsofUser(@User() user, @Param('userId') userId: string) {
+    return this.postService.getPostsOfUser(userId, user.id);
   }
 
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   findOne(@Param('id') id: string) {
     return this.postService.findOne(id);
-  }
-
-  @Get('getbysuser:id')
-  @UseGuards(JwtAuthGuard)
-  async getPostsofUser(@User() user) {
-    return this.postService.getPostsOfUser(user.id);
   }
 }

@@ -15,6 +15,7 @@ import { User } from '../user/entities/user.entity';
 import { Comment } from '../comment/entities/comment.entity';
 import { FriendRequest } from 'src/friend-request/entities/friend-request.entity';
 import { JwtService } from '@nestjs/jwt';
+import { DisplayedPostDto } from './dto/diplayed-post.dto';
 @Injectable()
 export class PostService extends ReusableService<Post> {
   private userService: any;
@@ -30,20 +31,16 @@ export class PostService extends ReusableService<Post> {
   ) {
     super(postRepository);
   }
-
-  addPost(createPostDto: CreatePostDto) {
+  async addPost(createPostDto: CreatePostDto) {
     console.log('addedPost: ' + createPostDto);
-    return super.create(createPostDto);
+    return await super.create(createPostDto);
   }
-
-  findAll() {
-    return super.findAll();
+  async findAll() {
+    return await super.findAll();
   }
-
-  findOne(id: string): Promise<Post> {
+  async findOne(id: string): Promise<Post> {
     return super.findById(id);
   }
-
   async updatePost(user: User, post: UpdatePostDto) {
     const updatedPost = await this.findById(post.id);
     console.log('owner ' + updatedPost.owner.username);
@@ -55,7 +52,6 @@ export class PostService extends ReusableService<Post> {
       );
     }
   }
-
   async remove(id: number, user: User) {
     const deletedPost = await this.findById(id.toString());
     if (deletedPost.owner.id === user.id) {
@@ -63,13 +59,11 @@ export class PostService extends ReusableService<Post> {
     } else
       throw new UnauthorizedException(' Only the owner can delete his post');
   }
-
   async getNumberOfLikesOfPost(id: string): Promise<any> {
     const post = await this.findOne(id);
     if (post) return post.likes.length;
     else throw new NotFoundException('Post not found');
   }
-
   async getLikesOfPost(id: string): Promise<any> {
     const post = await this.findOne(id);
     if (post) return post.likes;
@@ -84,15 +78,8 @@ export class PostService extends ReusableService<Post> {
       }
     } else throw new NotFoundException('Post not found');
 
-    //post.likes.forEach((e) => {
-    //console.log(' id ' + e.id);
-    // console.log(' mail' + e.email);
-    //console.log(' username ' + e.username);
-    //});
-
     return this.postRepository.save(post);
   }
-
   async dislikePost(userId: string, postId): Promise<Post> {
     const post = await this.findOne(postId);
 
@@ -135,33 +122,58 @@ export class PostService extends ReusableService<Post> {
       },
     });
     const friends = user.friends;
-
-    console.log('friends' + friends);
-
-    for (const e of friends) {
-      const id = e.id;
-      const posts: Post[] = await this.getPostsOfUser(e.id);
-      console.log(posts);
-      allPosts.push(posts);
-    }
-
-    return allPosts;
+    if (friends) {
+      for (const e of friends) {
+        const posts: Post[] = await this.getPostsOfUser(e.id, userId);
+        allPosts.push(posts);
+      }
+      return allPosts;
+    } else return ' go get some friends';
   }
+  async getPostsOfUser(userId: string, loggedUser: string): Promise<Post[]> {
+    const posts = await this.postRepository
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.owner', 'owner')
+      .leftJoinAndSelect('post.comments', 'comments')
+      .where('owner.id = :userId', { userId })
+      .getMany();
+    const user = await this.userRepository.findOneByOrFail({ id: loggedUser });
+    if (posts) {
+      const displayedPosts: DisplayedPostDto[] = [];
+      for (const post of posts) {
+        const likes: User[] = await this.getLikesOfPost(post.id);
+        const displayedPost: DisplayedPostDto = {
+          comments: await this.getCommentsByPost(post.id),
+          content: post.content,
+          createdAt: post.createdAt,
+          deletedAt: post.deletedAt,
+          id: post.id,
+          imageUrl: post.imageUrl,
+          likes: likes,
+          numberOfComments: await this.getNumberOfCommentsOfPost(post.id),
+          numberOfLikes: await this.getNumberOfLikesOfPost(post.id),
+          owner: post.owner,
+          updatedAt: post.updatedAt,
+          isLiked: likes.findIndex((item) => item.id == loggedUser) >= 0,
+        };
+        displayedPosts.push(displayedPost);
+      }
+
+      return displayedPosts;
+    } else throw new NotFoundException('this user does not have posts');
+  }
+  /*  async isLikedbyLoggedUser(userId: string, likes: User[]) {
+    const user = await this.userRepository.findOneByOrFail({ id: userId });
+    console.log(likes);
+    if (likes) {
+    return likes.includes(user);
+    }
+    else return false;
+  }*/
+
   async getNumberOfCommentsOfPost(id: string): Promise<any> {
     const post = await this.findOne(id);
     if (post) return post.comments.length;
     else throw new NotFoundException('Post not found');
-  }
-
-  async getPostsOfUser(id: string): Promise<Post[]> {
-    const posts = await this.postRepository
-      .createQueryBuilder('post')
-      .leftJoinAndSelect('post.owner', 'owner')
-      .where('owner.id = :id', { id })
-      .getMany();
-
-    console.log(posts);
-    if (posts) return posts;
-    else throw new NotFoundException('this user does not have posts');
   }
 }
