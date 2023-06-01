@@ -1,4 +1,4 @@
-import { JoinTable, ManyToOne, OneToMany } from 'typeorm';
+import {DeleteDateColumn, JoinTable, ManyToOne, OneToMany} from 'typeorm';
 import { ManyToMany } from 'typeorm';
 import { PrimaryGeneratedColumn } from 'typeorm';
 import { Column } from 'typeorm';
@@ -43,4 +43,6 @@ export class User extends Reusable {
 
   @OneToMany((type) => Post, (Post) => Post.owner, { cascade: true })
   posts: Post[];
+  @DeleteDateColumn()
+  deletedAt: Date;
 }
