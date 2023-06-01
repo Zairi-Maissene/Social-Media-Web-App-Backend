@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -32,8 +33,12 @@ export class PostService extends ReusableService<Post> {
     super(postRepository);
   }
   async addPost(createPostDto: CreatePostDto) {
-    console.log('addedPost: ' + createPostDto);
-    return await super.create(createPostDto);
+    if (createPostDto.content == '' && createPostDto.imageUrl == '') {
+      throw new BadRequestException('Either file or content must be provided');
+    } else {
+      console.log('addedPost: ' + createPostDto);
+      return await super.create(createPostDto);
+    }
   }
   async findAll() {
     return await super.findAll();
@@ -162,14 +167,6 @@ export class PostService extends ReusableService<Post> {
       return displayedPosts;
     } else throw new NotFoundException('this user does not have posts');
   }
-  /*  async isLikedbyLoggedUser(userId: string, likes: User[]) {
-    const user = await this.userRepository.findOneByOrFail({ id: userId });
-    console.log(likes);
-    if (likes) {
-    return likes.includes(user);
-    }
-    else return false;
-  }*/
 
   async getNumberOfCommentsOfPost(id: string): Promise<any> {
     const post = await this.findOne(id);

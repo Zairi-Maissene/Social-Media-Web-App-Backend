@@ -29,10 +29,10 @@ export class PostController {
     @UploadedFile() file: Express.Multer.File,
     @User() user,
   ) {
-    console.log('content :' + content);
     const image = file?.originalname || '';
-    console.log('image' + image);
-    console.log(' User : ' + user.username);
+    if (!content) {
+      content = '';
+    }
     const post: CreatePostDto = {
       content: content,
       imageUrl: image,

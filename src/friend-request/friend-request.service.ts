@@ -65,7 +65,7 @@ export class FriendRequestService {
       throw new NotFoundException('Cannot find user with the specified id.');
     }
     const userRequests = await this.friendRequestEntityRepository.find();
-    let recievedRequests = [];
+    const recievedRequests = [];
     userRequests.forEach((e) => {
       if (e.reciever.id == user.id) {
         recievedRequests.push(e);

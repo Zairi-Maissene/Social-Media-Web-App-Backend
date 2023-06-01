@@ -3,19 +3,18 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CreateCommentDto } from './dto/create-comment.dto';
+
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { ReusableService } from 'src/reusable/reusable.service';
 import { Comment } from './entities/comment.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { promises } from 'dns';
-import { NotFoundError } from 'rxjs';
+
 import { Post } from 'src/post/entities/post.entity';
 import { User } from 'src/user/entities/user.entity';
-import { FriendRequest } from 'src/friend-request/entities/friend-request.entity';
+
 import { UserService } from 'src/user/user.service';
-import { PostService } from 'src/post/post.service';
+import { SentCommentDto } from './dto/sent-comment.dto';
 
 @Injectable()
 export class CommentService extends ReusableService<Comment> {
@@ -28,7 +27,7 @@ export class CommentService extends ReusableService<Comment> {
   ) {
     super(commentRepository);
   }
-  async createComment(Dto: CreateCommentDto) {
+  async createComment(Dto: SentCommentDto) {
     const post = await this.postRepository.findOneBy({ id: Dto.postId });
     const comment = new Comment();
     comment.post = post;
