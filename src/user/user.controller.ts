@@ -39,8 +39,9 @@ export class UserController {
   }
 
   @Get('/findone/:id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findById(id);
+  @UseGuards(JwtAuthGuard)
+  findOne(@Param('id') id: string,@UserDeco() user) {
+    return this.userService.findUser(id,user.id);
   }
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
