@@ -88,4 +88,9 @@ export class UserController {
   async getFriends(@UserDeco() user) {
     return await this.userService.getFriends(user.id);
   }
+  @Get('/non-friends-users')
+  @UseGuards(JwtAuthGuard)
+  async nonFriendsUsers(@UserDeco() user) {
+    return await this.userService.nonFriendsUsers(user.id);
+  }
 }
