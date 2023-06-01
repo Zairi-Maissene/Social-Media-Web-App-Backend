@@ -61,14 +61,13 @@ export class UserService extends ReusableService<User> {
     const user = await this.userRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.friends', 'friend')
-      .select(['user.id', 'friend.id', 'friend.username', 'user.username'])
       .where('user.id = :userId', { userId })
       .getOne();
     if (!user) {
       throw new NotFoundException(this.notFoundMessage);
     }
 
-    return user;
+    return user.friends;
   }
 
   async searchByName(name: string) {
@@ -161,15 +160,11 @@ export class UserService extends ReusableService<User> {
     }
   }
   async isAFriend(userId: string, friendId: string) {
-    const user = await this.getFriends(userId);
-    const user2 = await this.getFriends(friendId);
-    const friend = user.friends.find((friend) => friend.id === friendId);
-    const friend2 = user2.friends.find((friend) => friend.id === userId);
+    const friends = await this.getFriends(userId);
+    const friends2 = await this.getFriends(friendId);
+
     return (
-      '2 is friend to 1 ' +
-      (friend ? true : false) +
-      ' 1 is friend to 2 ' +
-      (friend2 ? true : false)
+      friends || friends2 ? true : false
     );
   }
 }

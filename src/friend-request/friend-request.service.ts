@@ -41,24 +41,21 @@ export class FriendRequestService {
       id: requestId,
     });
     if (!request) {
-      throw new NotFoundException();
+      throw new NotFoundException("Request doesn't exist anymore.");
     }
-
     if (request.reciever.id !== user.id) {
       throw new ForbiddenException();
     }
-    console.log(user);
-    const newFriends = [];
-    if (user.friends) {
-      user.friends.push(request.sender);
-    } else {
-      user.friends = newFriends;
-      user.friends.push(request.sender);
-    }
+    const userWithFriends = await this.userEntityRepository.findOne({
+        where:  {id: user.id},
+        relations: ['friends'],
+        });
+    console.log(userWithFriends);
+    const newFriends = userWithFriends.friends || []
+    newFriends.push(request.sender);
     await this.friendRequestEntityRepository.delete(requestId);
-
-    //  const newUser = { ...user, friends: newFriends };
-    await this.userEntityRepository.save(user);
+    const newUser = { ...user, friends: newFriends };
+    await this.userEntityRepository.save(newUser);
   }
 
   async getAllRecieved(userId: string) {
@@ -75,7 +72,7 @@ export class FriendRequestService {
       }
     });
     console.log(recievedRequests.length);
-    const response = recievedRequests.map((request) => request.sender);
+    const response = recievedRequests.map((request) => ({sender:request.sender,requestId:request.id , requestDate:request.createdAt}));
     return response;
   }
   async getAllSent(userId: string) {

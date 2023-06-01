@@ -23,7 +23,7 @@ export class FriendRequestController {
   create(@Body() createFriendRequestDto: CreateFriendRequestDto, @User() user) {
     return this.friendRequestService.create(createFriendRequestDto, user);
   }
-  @Patch(':requestId')
+  @Patch('accept/:requestId')
   @UseGuards(JwtAuthGuard)
   acceptRequest(@Param('requestId') requestId: string, @User() user) {
     return this.friendRequestService.acceptRequest(requestId, user);
