@@ -21,7 +21,7 @@ export class Comment extends Reusable {
   })
   writer: User;
 
-  @ManyToOne((type) => Post, { eager: true })
+  @ManyToOne((type) => Post)
   @JoinColumn({
     name: 'post_id',
     referencedColumnName: 'id',

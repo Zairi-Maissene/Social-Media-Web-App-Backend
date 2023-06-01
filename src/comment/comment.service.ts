@@ -54,22 +54,29 @@ export class CommentService extends ReusableService<Comment> {
     user: User,
     updateCommentDto: UpdateCommentDto,
   ): Promise<Comment> {
-    console.log(updateCommentDto.content.toString());
+    console.log(updateCommentDto.content);
     const updateComment = await this.findById(updateCommentDto.id);
     if (updateComment) {
-      //if (updateComment.writer == user)
-      return super.update(updateComment.id, updateComment);
-      //else
-      //throw new UnauthorizedException(
-      //' only the writer can edit the comment',
-      //);
+      if (updateComment.writer.id == user.id) {
+        console.log('changed');
+        console.log(updateCommentDto.content);
+        console.log(updateCommentDto.id);
+        return this.update(updateCommentDto.id, updateCommentDto);
+      } else {
+        throw new UnauthorizedException(
+          ' only the writer can edit the comment',
+        );
+      }
     } else throw new NotFoundException(' comment not found ');
   }
 
   async remove(id: string, user: User) {
     const deletedComment = await this.findById(id);
     if (deletedComment) {
-      if (deletedComment.writer == user || deletedComment.post.owner == user)
+      if (
+        deletedComment.writer.id == user.id ||
+        deletedComment.post.owner.id == user
+      )
         super.delete(id);
       else {
         throw new UnauthorizedException(
@@ -80,16 +87,20 @@ export class CommentService extends ReusableService<Comment> {
     }
   }
 
-  async getCommentsByPost(postId:string) {
+  async getCommentsByPost(postId: string) {
     const comments = await this.commentRepository
       .createQueryBuilder('comment')
       .leftJoinAndSelect('comment.post', 'post')
       .where('post.id = :postId', { postId })
       .getMany();
-    if (!comments.length)
+
+    if (comments.length === 0) {
       throw new NotFoundException(`Comments with Post id ${postId} not found`);
-    else return comments;
+    }
+
+    return comments;
   }
+
   async getCommentsByWriter(writerId: string) {
     const comments = await this.commentRepository
       .createQueryBuilder('comment')
