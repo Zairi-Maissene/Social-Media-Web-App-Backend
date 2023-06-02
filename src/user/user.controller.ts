@@ -39,7 +39,10 @@ export class UserController {
   }
 
   @Get('/findone/:id/:connectedUserId?')
-  findOne(@Param('id') id: string, @Param('connectedUserId') connectedUserId: string) {
+  findOne(
+    @Param('id') id: string,
+    @Param('connectedUserId') connectedUserId: string,
+  ) {
     return this.userService.findUser(id, connectedUserId);
   }
   @Patch(':id')
@@ -87,8 +90,9 @@ export class UserController {
   async getFriends(@UserDeco() user) {
     return await this.userService.getFriends(user.id);
   }
-  @Get('/non-friends-users/:userId?')
-  async nonFriendsUsers(@Param('userId') userId: string) {
-    return await this.userService.nonFriendsUsers(userId);
+  @Get('/non-friends-users')
+  @UseGuards(JwtAuthGuard)
+  async nonFriendsUsers(@UserDeco() user :User) {
+    return await this.userService.nonFriendsUsers(user.id);
   }
 }
