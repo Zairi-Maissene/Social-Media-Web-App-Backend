@@ -207,15 +207,21 @@ export class UserService extends ReusableService<User> {
 
 return friends?.filter((friend)=>friend.id===friendId).length>0;
   }
-  async nonFriendsUsers (userId)
-  {
-    const friends=await this.getFriends(userId);
-    const allUsers=await this.getALLUsers();
+  async nonFriendsUsers (userId) {
+    if (userId) {
+      const friends = await this.getFriends(userId);
 
+      const allUsers = await this.getALLUsers();
 
-    const nonFriends = allUsers.filter((user) => !friends.includes(user.id));
+      const users = await allUsers.filter((user) => !friends.map((friend)=>friend.id).includes(user.id));
+      return users;
+  }
+    else {
+      const users=await this.getALLUsers();
 
-    return nonFriends;
+      return await users
+    }
+
   }
 
 }
