@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {FindOptionsWhere, Repository} from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { FriendRequest } from '../friend-request/entities/friend-request.entity';
 import { SubscribeUser } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -24,10 +24,10 @@ export class UserService extends ReusableService<User> {
   notFoundMessage = 'User not found';
 
   constructor(
-      @InjectRepository(User)
-      private userRepository: Repository<User>,
-      @InjectRepository(FriendRequest)
-      private friendRequestRepository: Repository<FriendRequest>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    @InjectRepository(FriendRequest)
+    private friendRequestRepository: Repository<FriendRequest>,
     private jwtService: JwtService,
   ) {
     super(userRepository);
@@ -37,48 +37,46 @@ export class UserService extends ReusableService<User> {
     return super.findAll();
   }
 
-  async findUser(id: string,userId: string){
-
+  async findUser(id: string, userId: string) {
     const searchedUser = await super.findById(id);
     const response = {
       userFriendship: null,
       user: searchedUser,
     };
-   if (userId!=undefined)
-   {
-     response.userFriendship = "notFriend";
+    if (userId != undefined) {
+      response.userFriendship = 'notFriend';
 
-       if (id === userId) {
-         const userFriendship = 'admin';
-         response.userFriendship = userFriendship;
-       }
+      if (id === userId) {
+        const userFriendship = 'admin';
+        response.userFriendship = userFriendship;
+      }
 
-       if (await this.isAFriend(userId, id) == true) {
-         const userFriendship = "friend"
-         response.userFriendship = userFriendship;
-       }
+      if ((await this.isAFriend(userId, id)) == true) {
+        const userFriendship = 'friend';
+        response.userFriendship = userFriendship;
+      }
 
+      if (
+        (await this.friendRequestRepository
+          .createQueryBuilder('friendRequest')
+          .where('friendRequest.sender_id = :id', { id })
+          .getOne()) != null
+      ) {
+        const userFriendship = 'recievedRequest';
+        response.userFriendship = userFriendship;
+      }
+      if (
+        (await this.friendRequestRepository
+          .createQueryBuilder('friendRequest')
+          .where('friendRequest.sender_id = :userId', { userId })
+          .getOne()) != null
+      ) {
+        const userFriendship = 'sentRequest';
+        response.userFriendship = userFriendship;
+      }
+    }
 
-       if (await this.friendRequestRepository
-               .createQueryBuilder("friendRequest")
-               .where("friendRequest.sender_id = :id", {id})
-               .getOne()
-           != null) {
-         const userFriendship = "recievedRequest"
-         response.userFriendship = userFriendship;
-       }
-       if (await this.friendRequestRepository
-               .createQueryBuilder("friendRequest")
-               .where("friendRequest.sender_id = :userId", {userId})
-               .getOne()
-           != null) {
-         const userFriendship = "sentRequest"
-         response.userFriendship = userFriendship;
-       }
-     }
-
-
-    return response  ;
+    return response;
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
@@ -203,25 +201,47 @@ export class UserService extends ReusableService<User> {
     }
   }
   async isAFriend(userId: string, friendId: string) {
-    const friends=await this.getFriends(userId);
+    const friends = await this.getFriends(userId);
 
-return friends?.filter((friend)=>friend.id===friendId).length>0;
+    return friends?.filter((friend) => friend.id === friendId).length > 0;
   }
-  async nonFriendsUsers (userId) {
+  async nonFriendsUsers(userId) {
     if (userId) {
       const friends = await this.getFriends(userId);
 
       const allUsers = await this.getALLUsers();
-
-      const users = await allUsers.filter((user) => !friends.map((friend)=>friend.id).includes(user.id));
+      const potentielFriends = await this.getPotentialFriends(userId);
+      const users = await allUsers.filter(
+        (user) =>
+          !friends.map((friend) => friend.id).includes(user.id) &&
+          !potentielFriends.map((friend) => friend.id).includes(user.id) &&
+          user.id !== userId,
+      );
       return users;
-  }
-    else {
-      const users=await this.getALLUsers();
 
-      return await users
+    } else {
+      const users = await this.getALLUsers();
+
+      return users;
     }
-
   }
 
+  async getPotentialFriends(userId) {
+    const potentialFriends: User[] = [];
+    let friendRequests = await this.friendRequestRepository.find({
+      relations: {
+        sender: true,
+        reciever: true,
+      },
+    });
+    if (friendRequests) {
+      friendRequests = friendRequests.filter(
+        (request) => request.sender.id == userId,
+      );
+      friendRequests.forEach((request) =>
+        potentialFriends.push(request.reciever),
+      );
+    }
+    return potentialFriends;
+  }
 }
