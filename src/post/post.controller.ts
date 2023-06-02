@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Req,
+  ParseFilePipe,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -17,6 +18,7 @@ import { FileInterceptor } from '@nestjs/platform-express/';
 import { JwtAuthGuard } from '../user/Guards/jwt-auth.guard';
 import { User } from '../decorators/user.decorator';
 import { Request } from 'express';
+import { imageFileFilter } from '../Filters/imageFilter';
 @Controller('post')
 export class PostController {
   constructor(private readonly postService: PostService) {}
@@ -26,7 +28,14 @@ export class PostController {
   @UseInterceptors(FileInterceptor('file'))
   async create(
     @Body('content') content: string,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile()
+    file: /*new ParseFilePipe({
+      validators: [
+        new FileTypeValidator({ fileType: 'jpeg' }),
+      ],
+    }),*/
+    Express.Multer.File,
+
     @User() user,
   ) {
     const image = file?.originalname || '';
