@@ -109,13 +109,14 @@ export class PostService extends ReusableService<Post> {
     return this.postRepository.save(post);
   }
   async getCommentsByPost(postId: string) {
-    const post = await this.postRepository
-      .createQueryBuilder('post')
-      .leftJoinAndSelect('post.comments', 'comment')
-      .select(['post.id', 'comment.id', 'comment.content'])
-      .where('post.id = :postId', { postId })
-      .getOne();
-    return post.comments;
+    let comments = await this.commentRepository.find({
+      relations: {
+        post: true,
+        writer: true,
+      },
+    });
+    comments = comments.filter((comment) => comment.post.id == postId) ;
+    return comments;
   }
 
   async getPostsOfMyFriends(userId: string) {
