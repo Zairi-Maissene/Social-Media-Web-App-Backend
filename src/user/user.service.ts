@@ -41,39 +41,41 @@ export class UserService extends ReusableService<User> {
 
     const searchedUser = await super.findById(id);
     const response = {
-      userFriendship: 'notFriend',
-      searchedUser: searchedUser,
+      userFriendship: null,
+      user: searchedUser,
     };
-    if (id === userId) {
-      const userFriendship = 'admin';
-      response.userFriendship = userFriendship;
-    }
+   if (userId!=undefined)
+   {
+     response.userFriendship = "notFriend";
 
-    if(await this.isAFriend(userId,id)==true) {
-      const userFriendship = "friend"
-      response.userFriendship = userFriendship;
-    }
+       if (id === userId) {
+         const userFriendship = 'admin';
+         response.userFriendship = userFriendship;
+       }
+
+       if (await this.isAFriend(userId, id) == true) {
+         const userFriendship = "friend"
+         response.userFriendship = userFriendship;
+       }
 
 
-
-    if( await this.friendRequestRepository
-            .createQueryBuilder("friendRequest")
-            .where("friendRequest.sender_id = :id", { id })
-            .getOne()
-        !=null)
-    {
-      const userFriendship = "recievedRequest"
-      response.userFriendship = userFriendship;
-    }
-    if( await this.friendRequestRepository
-            .createQueryBuilder("friendRequest")
-            .where("friendRequest.sender_id = :userId", { userId })
-            .getOne()
-        !=null)
-    {
-      const userFriendship = "sentRequest"
-      response.userFriendship = userFriendship;
-    }
+       if (await this.friendRequestRepository
+               .createQueryBuilder("friendRequest")
+               .where("friendRequest.sender_id = :id", {id})
+               .getOne()
+           != null) {
+         const userFriendship = "recievedRequest"
+         response.userFriendship = userFriendship;
+       }
+       if (await this.friendRequestRepository
+               .createQueryBuilder("friendRequest")
+               .where("friendRequest.sender_id = :userId", {userId})
+               .getOne()
+           != null) {
+         const userFriendship = "sentRequest"
+         response.userFriendship = userFriendship;
+       }
+     }
 
 
     return response  ;
