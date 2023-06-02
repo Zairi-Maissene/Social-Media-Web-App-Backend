@@ -39,10 +39,7 @@ export class UserController {
   }
 
   @Get('/findone/:id/:connectedUserId?')
-  findOne(
-    @Param('id') id: string,
-    @Param('connectedUserId') connectedUserId: string,
-  ) {
+  findOne(@Param('id') id: string, @Param('connectedUserId') connectedUserId: string) {
     return this.userService.findUser(id, connectedUserId);
   }
   @Patch(':id')
