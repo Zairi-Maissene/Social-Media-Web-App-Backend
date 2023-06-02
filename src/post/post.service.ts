@@ -115,7 +115,7 @@ export class PostService extends ReusableService<Post> {
         writer: true,
       },
     });
-    comments = comments.filter((comment) => comment.post.id == postId) ;
+    comments = comments.filter((comment) => comment.post.id == postId);
     return comments;
   }
 

@@ -1,4 +1,8 @@
-import { NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ForbiddenException } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -16,29 +20,58 @@ export class FriendRequestService {
     @InjectRepository(User) private userEntityRepository: Repository<User>,
   ) {}
   async create(createFriendRequestDto: CreateFriendRequestDto, user: User) {
-    const friendRequest = new FriendRequest();
     const reciever = await this.userEntityRepository.findOneBy({
       id: createFriendRequestDto.reciever_id,
     });
 
-    friendRequest.sender = user;
-    friendRequest.reciever = reciever;
-    return await this.friendRequestEntityRepository.save(friendRequest);
+    const RequestsList = await this.friendRequestEntityRepository.find({
+      relations: {
+        reciever: true,
+        sender: true,
+      },
+    });
+    const requestExist = RequestsList.findIndex(
+      (item) => item.reciever.id == reciever.id && item.sender.id,
+    );
+
+    if (requestExist >= 0) {
+      throw new BadRequestException(' request already sent ');
+    } else {
+      const friendRequest = new FriendRequest();
+      friendRequest.sender = user;
+      friendRequest.reciever = reciever;
+      return await this.friendRequestEntityRepository.save(friendRequest);
+    }
   }
   async refuse(id: string, user: User) {
-    const request = await this.friendRequestEntityRepository.findOneBy({
-      id: id,
+    const request = await this.friendRequestEntityRepository.findOne({
+      where: { id: id },
+      relations: {
+        reciever: true,
+        sender: true,
+      },
     });
-    if (request.reciever.id == user.id || request.sender.id == user.id) {
-      return await this.friendRequestEntityRepository.delete(request.id);
-    } else
-      throw new UnauthorizedException(
-        ' only sender or reciever can delete the request ',
-      );
+
+    if (!request) {
+      throw new NotFoundException("Request doesn't exist anymore.");
+    } else {
+      console.log(request);
+      if (request.reciever?.id == user.id || request.sender?.id == user.id) {
+        return await this.friendRequestEntityRepository.delete(request.id);
+      } else {
+        throw new UnauthorizedException(
+          ' only sender or reciever can delete the request ',
+        );
+      }
+    }
   }
   async acceptRequest(requestId: string, user: User) {
-    const request = await this.friendRequestEntityRepository.findOneBy({
-      id: requestId,
+    const request = await this.friendRequestEntityRepository.findOne({
+      where: { id: requestId },
+      relations: {
+        reciever: true,
+        sender: true,
+      },
     });
     if (!request) {
       throw new NotFoundException("Request doesn't exist anymore.");
