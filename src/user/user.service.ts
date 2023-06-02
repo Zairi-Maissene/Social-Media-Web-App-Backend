@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import {FindOptionsWhere, Repository} from 'typeorm';
 import { FriendRequest } from '../friend-request/entities/friend-request.entity';
 import { SubscribeUser } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -24,10 +24,10 @@ export class UserService extends ReusableService<User> {
   notFoundMessage = 'User not found';
 
   constructor(
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
-    @InjectRepository(FriendRequest)
-    private friendRequestRepository: Repository<FriendRequest>,
+      @InjectRepository(User)
+      private userRepository: Repository<User>,
+      @InjectRepository(FriendRequest)
+      private friendRequestRepository: Repository<FriendRequest>,
     private jwtService: JwtService,
   ) {
     super(userRepository);
@@ -37,7 +37,8 @@ export class UserService extends ReusableService<User> {
     return super.findAll();
   }
 
-  async findUser(id: string, userId: string) {
+  async findUser(id: string,userId: string){
+
     const searchedUser = await super.findById(id);
     const response = {
       userFriendship: 'notFriend',
@@ -48,31 +49,34 @@ export class UserService extends ReusableService<User> {
       response.userFriendship = userFriendship;
     }
 
-    if ((await this.isAFriend(userId, id)) == true) {
-      const userFriendship = 'friend';
+    if(await this.isAFriend(userId,id)==true) {
+      const userFriendship = "friend"
       response.userFriendship = userFriendship;
     }
 
-    if (
-      (await this.friendRequestRepository
-        .createQueryBuilder('friendRequest')
-        .where('friendRequest.sender_id = :id', { id })
-        .getOne()) != null
-    ) {
-      const userFriendship = 'recievedRequest';
+
+
+    if( await this.friendRequestRepository
+            .createQueryBuilder("friendRequest")
+            .where("friendRequest.sender_id = :id", { id })
+            .getOne()
+        !=null)
+    {
+      const userFriendship = "recievedRequest"
       response.userFriendship = userFriendship;
     }
-    if (
-      (await this.friendRequestRepository
-        .createQueryBuilder('friendRequest')
-        .where('friendRequest.sender_id = :userId', { userId })
-        .getOne()) != null
-    ) {
-      const userFriendship = 'sentRequest';
+    if( await this.friendRequestRepository
+            .createQueryBuilder("friendRequest")
+            .where("friendRequest.sender_id = :userId", { userId })
+            .getOne()
+        !=null)
+    {
+      const userFriendship = "sentRequest"
       response.userFriendship = userFriendship;
     }
 
-    return response;
+
+    return response  ;
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
@@ -197,16 +201,19 @@ export class UserService extends ReusableService<User> {
     }
   }
   async isAFriend(userId: string, friendId: string) {
-    const friends = await this.getFriends(userId);
+    const friends=await this.getFriends(userId);
 
-    return friends?.filter((friend) => friend.id === friendId).length > 0;
+return friends?.filter((friend)=>friend.id===friendId).length>0;
   }
-  async nonFriendsUsers(userId) {
-    const friends = await this.getFriends(userId);
-    const allUsers = await this.getALLUsers();
+  async nonFriendsUsers (userId)
+  {
+    const friends=await this.getFriends(userId);
+    const allUsers=await this.getALLUsers();
+
 
     const nonFriends = allUsers.filter((user) => !friends.includes(user.id));
 
     return nonFriends;
   }
+
 }
