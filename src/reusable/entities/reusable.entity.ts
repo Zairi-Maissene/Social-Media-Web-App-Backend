@@ -17,6 +17,4 @@ export abstract class Reusable {
   updatedAt: Date;
   @DeleteDateColumn({ nullable: true })
   deletedAt: Date;
-
-
 }
