@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import {
   Injectable,
   NotFoundException,
@@ -33,6 +34,9 @@ export class CommentService extends ReusableService<Comment> {
     comment.post = post;
     comment.writer = Dto.writer;
     comment.content = Dto.content;
+    if (!Dto.content) {
+      throw new BadRequestException('Comment content is empty');
+    }
     if (!post) {
       throw new NotFoundException('Post not found');
     } else {

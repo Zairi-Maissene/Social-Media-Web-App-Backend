@@ -21,7 +21,7 @@ export class Comment extends Reusable {
   })
   writer: User;
 
-  @ManyToOne((type) => Post)
+  @ManyToOne((type) => Post, { onDelete: 'CASCADE'})
   @JoinColumn({
     name: 'post_id',
     referencedColumnName: 'id',

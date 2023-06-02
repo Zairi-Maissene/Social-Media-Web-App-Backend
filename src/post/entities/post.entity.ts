@@ -26,7 +26,6 @@ export class Post extends Reusable {
   owner: User;
 
   @OneToMany((type) => Comment, (comment) => comment.post, {
-    cascade: true,
     eager: true,
   })
   comments: Comment[];

@@ -23,12 +23,12 @@ export class CommentController {
   @Post('add/:id')
   @UseGuards(JwtAuthGuard)
   create(
-    @Body('content') body: { comment: string },
+    @Body('content') content: string,
     @User() user,
     @Param('id') postId: string,
   ) {
     const comment: SentCommentDto = {
-      content: body.comment,
+      content,
       postId: postId,
       writer: user,
     };
