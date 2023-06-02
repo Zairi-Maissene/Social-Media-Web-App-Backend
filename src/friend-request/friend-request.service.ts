@@ -11,59 +11,42 @@ import { User } from '../user/entities/user.entity';
 import { CreateFriendRequestDto } from './dto/create-friend-request.dto';
 import { UpdateFriendRequestDto } from './dto/update-friend-request.dto';
 import { FriendRequest } from './entities/friend-request.entity';
+import {Reusable} from "../reusable/entities/reusable.entity";
+import {ReusableService} from "../reusable/reusable.service";
 
 @Injectable()
-export class FriendRequestService {
+export class FriendRequestService extends ReusableService<FriendRequest> {
   constructor(
     @InjectRepository(FriendRequest)
     private friendRequestEntityRepository: Repository<FriendRequest>,
     @InjectRepository(User) private userEntityRepository: Repository<User>,
-  ) {}
-  async create(createFriendRequestDto: CreateFriendRequestDto, user: User) {
-    const reciever = await this.userEntityRepository.findOneBy({
-      id: createFriendRequestDto.reciever_id,
-    });
-
-    const RequestsList = await this.friendRequestEntityRepository.find({
-      relations: {
-        reciever: true,
-        sender: true,
-      },
-    });
-    const requestExist = RequestsList.findIndex(
-      (item) => item.reciever.id == reciever.id && item.sender.id,
-    );
-
-    if (requestExist >= 0) {
-      throw new BadRequestException(' request already sent ');
-    } else {
-      const friendRequest = new FriendRequest();
-      friendRequest.sender = user;
-      friendRequest.reciever = reciever;
-      return await this.friendRequestEntityRepository.save(friendRequest);
-    }
+  ) {
+    super (friendRequestEntityRepository)
   }
-  async refuse(id: string, user: User) {
+  async create(createFriendRequestDto: CreateFriendRequestDto) {
+
+
+    return await super.create(createFriendRequestDto);
+
+  }
+  async refuse(userid: string, user: string) {
     const request = await this.friendRequestEntityRepository.findOne({
-      where: { id: id },
-      relations: {
-        reciever: true,
-        sender: true,
-      },
+      where: [
+        { reciever: { id: userid || user } },
+        { sender: { id: userid || user } },
+      ],
     });
 
     if (!request) {
       throw new NotFoundException("Request doesn't exist anymore.");
     } else {
       console.log(request);
-      if (request.reciever?.id == user.id || request.sender?.id == user.id) {
         return await this.friendRequestEntityRepository.delete(request.id);
-      } else {
-        throw new UnauthorizedException(
-          ' only sender or reciever can delete the request ',
-        );
-      }
+
+
     }
+
+
   }
   async acceptRequest(requestId: string, user: User) {
     const request = await this.friendRequestEntityRepository.findOne({
@@ -126,7 +109,7 @@ export class FriendRequestService {
       }
     });
     console.log(sentRequests.length);
-    const response = sentRequests.map((request) => request.reciever);
+    const response = sentRequests.map((request) => request.reciever)
     return response;
   }
 

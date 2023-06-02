@@ -18,34 +18,37 @@ import { User } from '../decorators/user.decorator';
 export class FriendRequestController {
   constructor(private readonly friendRequestService: FriendRequestService) {}
 
-  @Post()
+  @Post('send')
   @UseGuards(JwtAuthGuard)
-  create(@Body() createFriendRequestDto: CreateFriendRequestDto, @User() user) {
-    return this.friendRequestService.create(createFriendRequestDto, user);
+  createFriendRequest(@Body( 'recieverId')reciverId: string, @User() user) {
+    const createFriendRequestDto: CreateFriendRequestDto = {reciever: reciverId, sender: user.id}
+    console.log("reciever", reciverId)
+    return this.friendRequestService.create(createFriendRequestDto);
   }
   @Patch('accept/:requestId')
   @UseGuards(JwtAuthGuard)
-  acceptRequest(@Param('requestId') requestId: string, @User() user) {
+  acceptFriendRequest(@Param('requestId') requestId: string, @User() user) {
     return this.friendRequestService.acceptRequest(requestId, user);
   }
   @Get('sent')
   @UseGuards(JwtAuthGuard)
-  findAllSent(@User() user) {
+  findAllSentFriendRequest(@User() user) {
     return this.friendRequestService.getAllSent(user.id);
   }
   @Get('recieved')
   @UseGuards(JwtAuthGuard)
-  findAllRecieved(@User() user) {
+  findAllRecievedFriendRequest(@User() user) {
     return this.friendRequestService.getAllRecieved(user.id);
   }
   @Get('/findone/:id')
-  findOne(@Param('id') id: string) {
+  findFriendRequest(@Param('id') id: string) {
     return this.friendRequestService.findOne(id);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  remove(@Param('id') id: string, @User() user) {
-    return this.friendRequestService.refuse(id, user);
+  RemoveFriendRequest(@Param('id') id: string, @User() user) {
+    return this.friendRequestService.refuse(id, user.id);
   }
+
 }
