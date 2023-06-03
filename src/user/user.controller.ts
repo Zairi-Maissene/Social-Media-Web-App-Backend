@@ -6,7 +6,7 @@ import {
   Patch,
   Param,
   Delete,
-  UseGuards,
+  UseGuards, Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { SubscribeUser } from './dto/create-user.dto';
@@ -89,7 +89,8 @@ export class UserController {
   }
   @Get('/non-friends-users')
   @UseGuards(JwtAuthGuard)
-  async nonFriendsUsers(@UserDeco() user :User) {
-    return await this.userService.nonFriendsUsers(user.id);
+  async nonFriendsUsers(@Query('page') page: number ,@UserDeco() user :User) {
+    console.log('here')
+    return await this.userService.nonFriendsUsers(user.id,page);
   }
 }
