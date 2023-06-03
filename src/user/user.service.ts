@@ -44,41 +44,51 @@ export class UserService extends ReusableService<User> {
       userFriendship: null,
       user: searchedUser,
     };
-   if (userId!=undefined)
+   if (userId!==undefined)
    {
      response.userFriendship = "notFriend";
 
        if (id === userId) {
          const userFriendship = 'admin';
+
          response.userFriendship = userFriendship;
+         return response;
        }
 
-       if (await this.isAFriend(userId, id) == true) {
+       if (await this.isAFriend(userId, id) === true) {
          const userFriendship = "friend"
          response.userFriendship = userFriendship;
+         return response;
+
        }
 
 
-       if (await this.friendRequestRepository
-               .createQueryBuilder("friendRequest")
-               .where("friendRequest.sender_id = :id", {id})
-               .getOne()
-           != null) {
+       if ( await this.friendRequestRepository.findOne({
+           where:
+             { reciever: { id: userId } ,
+              sender: { id: id } },
+         })){
          const userFriendship = "recievedRequest"
          response.userFriendship = userFriendship;
+         return response;
        }
-       if (await this.friendRequestRepository
-               .createQueryBuilder("friendRequest")
-               .where("friendRequest.sender_id = :userId", {userId})
-               .getOne()
-           != null) {
+       const test =  await this.friendRequestRepository.findOne({
+         where: [
+           {reciever: {id: id},
+           sender: {id: userId}}
+         ],
+       })
+
+       if (test) {
+
          const userFriendship = "sentRequest"
+          console.log('test:',test)
          response.userFriendship = userFriendship;
+         return response;
        }
      }
+  return response;
 
-
-    return response  ;
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
