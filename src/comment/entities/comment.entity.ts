@@ -1,7 +1,14 @@
-import { Reusable } from "src/reusable/entities/reusable.entity";
-import { User } from "../../user/entities/user.entity";
-import { Post} from "../../post/entities/post.entity";
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne } from "typeorm";
+import { Reusable } from 'src/reusable/entities/reusable.entity';
+import { User } from '../../user/entities/user.entity';
+import { Post } from '../../post/entities/post.entity';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 
 @Entity()
 export class Comment extends Reusable {
@@ -14,7 +21,7 @@ export class Comment extends Reusable {
   })
   writer: User;
 
-  @ManyToOne((type) => Post, { onDelete: 'CASCADE'})
+  @ManyToOne((type) => Post, { onDelete: 'CASCADE' })
   @JoinColumn({
     name: 'post_id',
     referencedColumnName: 'id',

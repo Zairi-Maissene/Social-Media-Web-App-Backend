@@ -145,6 +145,7 @@ export class PostService extends ReusableService<Post> {
       .leftJoinAndSelect('post.owner', 'owner')
       .leftJoinAndSelect('post.comments', 'comments')
       .where('owner.id = :userId', { userId })
+      .orderBy('post.createdAt', 'DESC')
       .getMany();
     const user = await this.userRepository.findOneByOrFail({ id: loggedUser });
     if (posts) {
@@ -157,7 +158,7 @@ export class PostService extends ReusableService<Post> {
           createdAt: post.createdAt,
           deletedAt: post.deletedAt,
           id: post.id,
-          imageUrl: post.imageUrl,
+          imageUrl: post.imageUrl || '',
           likes: likes,
           numberOfComments: await this.getNumberOfCommentsOfPost(post.id),
           numberOfLikes: await this.getNumberOfLikesOfPost(post.id),

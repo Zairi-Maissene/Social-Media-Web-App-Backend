@@ -37,58 +37,49 @@ export class UserService extends ReusableService<User> {
     return super.findAll();
   }
 
-  async findUser(id: string,userId: string){
-
+  async findUser(id: string, userId: string) {
     const searchedUser = await super.findById(id);
     const response = {
       userFriendship: null,
       user: searchedUser,
     };
-   if (userId!==undefined)
-   {
-     response.userFriendship = "notFriend";
+    if (userId !== undefined) {
+      response.userFriendship = 'notFriend';
 
-       if (id === userId) {
-         const userFriendship = 'admin';
+      if (id === userId) {
+        const userFriendship = 'admin';
 
-         response.userFriendship = userFriendship;
-         return response;
-       }
+        response.userFriendship = userFriendship;
+        return response;
+      }
 
-       if (await this.isAFriend(userId, id) === true) {
-         const userFriendship = "friend"
-         response.userFriendship = userFriendship;
-         return response;
+      if ((await this.isAFriend(userId, id)) === true) {
+        const userFriendship = 'friend';
+        response.userFriendship = userFriendship;
+        return response;
+      }
 
-       }
+      if (
+        await this.friendRequestRepository.findOne({
+          where: { reciever: { id: userId }, sender: { id: id } },
+        })
+      ) {
+        const userFriendship = 'recievedRequest';
+        response.userFriendship = userFriendship;
+        return response;
+      }
+      const test = await this.friendRequestRepository.findOne({
+        where: [{ reciever: { id: id }, sender: { id: userId } }],
+      });
 
-
-       if ( await this.friendRequestRepository.findOne({
-           where:
-             { reciever: { id: userId } ,
-              sender: { id: id } },
-         })){
-         const userFriendship = "recievedRequest"
-         response.userFriendship = userFriendship;
-         return response;
-       }
-       const test =  await this.friendRequestRepository.findOne({
-         where: [
-           {reciever: {id: id},
-           sender: {id: userId}}
-         ],
-       })
-
-       if (test) {
-
-         const userFriendship = "sentRequest"
-          console.log('test:',test)
-         response.userFriendship = userFriendship;
-         return response;
-       }
-     }
-  return response;
-
+      if (test) {
+        const userFriendship = 'sentRequest';
+        console.log('test:', test);
+        response.userFriendship = userFriendship;
+        return response;
+      }
+    }
+    return response;
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {

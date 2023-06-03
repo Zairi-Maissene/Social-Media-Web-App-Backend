@@ -6,10 +6,13 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { FriendRequestService } from './friend-request.service';
 import { CreateFriendRequestDto } from './dto/create-friend-request.dto';
 import { UpdateFriendRequestDto } from './dto/update-friend-request.dto';
+import { JwtAuthGuard } from '../user/Guards/jwt-auth.guard';
+import { User as UserDeco } from '../decorators/user.decorator';
 
 @Controller('friend-request')
 export class FriendRequestController {
@@ -17,24 +20,27 @@ export class FriendRequestController {
 
   @Post('send')
   @UseGuards(JwtAuthGuard)
-  createFriendRequest(@Body( 'recieverId')reciverId: string, @User() user) {
-    const createFriendRequestDto: CreateFriendRequestDto = {reciever: reciverId, sender: user.id}
-    console.log("reciever", reciverId)
-    return this.friendRequestService.create(createFriendRequestDto);
+  createFriendRequest(@Body('recieverId') reciverId: string, @UserDeco() user) {
+    const createFriendRequestDto: CreateFriendRequestDto = {
+      reciever: reciverId,
+      sender: user.id,
+    };
+    console.log('reciever', reciverId);
+    return this.friendRequestService.create(createFriendRequestDto, user);
   }
   @Patch('accept/:requestId')
   @UseGuards(JwtAuthGuard)
-  acceptFriendRequest(@Param('requestId') requestId: string, @User() user) {
+  acceptFriendRequest(@Param('requestId') requestId: string, @UserDeco() user) {
     return this.friendRequestService.acceptRequest(requestId, user);
   }
   @Get('sent')
   @UseGuards(JwtAuthGuard)
-  findAllSentFriendRequest(@User() user) {
+  findAllSentFriendRequest(@UserDeco() user) {
     return this.friendRequestService.getAllSent(user.id);
   }
   @Get('recieved')
   @UseGuards(JwtAuthGuard)
-  findAllRecievedFriendRequest(@User() user) {
+  findAllRecievedFriendRequest(@UserDeco() user) {
     return this.friendRequestService.getAllRecieved(user.id);
   }
   @Get('/findone/:id')
@@ -44,7 +50,7 @@ export class FriendRequestController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  RemoveFriendRequest(@Param('id') id: string, @User() user) {
+  RemoveFriendRequest(@Param('id') id: string, @UserDeco() user) {
     return this.friendRequestService.refuse(id, user.id);
   }
 }
