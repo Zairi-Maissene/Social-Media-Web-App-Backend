@@ -209,8 +209,6 @@ export class UserService extends ReusableService<User> {
 return friends?.filter((friend)=>friend.id===friendId).length>0;
   }
   async nonFriendsUsers(userId,page:number) {
-    console.log("page-1",page-1)
-    console.log("page",page)
     const pageSize = 8;
     const user = await this.userRepository
         .createQueryBuilder('user')
@@ -218,7 +216,7 @@ return friends?.filter((friend)=>friend.id===friendId).length>0;
             'user.id =:userId',
             {userId},
         )
-        .getOne();
+      .getOne();
     if (!user) {
       throw new NotFoundException('User not found ');
     }
@@ -226,12 +224,14 @@ return friends?.filter((friend)=>friend.id===friendId).length>0;
     const friends = await this.getFriends(userId);
     const allUsers = await this.getALLUsers();
     const potentielFriends = await this.getPotentialFriends(userId);
-
-    const users = await allUsers.filter(
+    if (!allUsers) {
+      throw new NotFoundException('No users found ');
+    }
+    const users = await allUsers?.filter(
         (user) =>
-            !friends.map((friend) => friend.id).includes(user.id) &&
-            !potentielFriends.map((friend) => friend.id).includes(user.id) &&
-            user.id !== userId,
+          !friends.map((friend) => friend?.id).includes(user?.id) &&
+          !potentielFriends.map((friend) => friend?.id).includes(user?.id) &&
+          user?.id !== userId,
     );
     const totalUsers = users.length;
     const totalPages = Math.ceil(totalUsers / pageSize);
