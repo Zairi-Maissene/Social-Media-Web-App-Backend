@@ -80,18 +80,13 @@ export class FriendRequestService extends ReusableService<FriendRequest> {
     if (!user) {
       throw new NotFoundException('Cannot find user with the specified id.');
     }
-    const userRequests = await this.friendRequestEntityRepository.find();
+    const userRequests = await this.friendRequestEntityRepository.find({
+      where: { reciever: { id: userId } },
+    });
     if (!userRequests) {
       return [];
     }
-    const recievedRequests = [];
-    userRequests.forEach((e) => {
-      if (e.reciever?.id === user?.id) {
-        recievedRequests.push(e);
-      }
-    });
-    console.log(recievedRequests.length);
-    const response = recievedRequests.map((request) => ({
+    const response = userRequests.map((request) => ({
       sender: request.sender,
       requestId: request.id,
       requestDate: request.createdAt,
