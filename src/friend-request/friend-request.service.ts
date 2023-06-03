@@ -33,11 +33,13 @@ export class FriendRequestService {
   }
 
   async refuse(userid: string, user: string) {
-    console.log(userid)
     const request = await this.friendRequestEntityRepository.findOne({
-      where:
+      where: [
         { reciever: { id: userid } ,
         sender: { id: user} },
+        { reciever: { id: user } ,
+          sender: { id: userid } },
+      ],
     });
 
     if (!request) {
