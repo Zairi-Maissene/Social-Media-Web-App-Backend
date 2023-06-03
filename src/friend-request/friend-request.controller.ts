@@ -6,13 +6,10 @@ import {
   Patch,
   Param,
   Delete,
-  UseGuards,
 } from '@nestjs/common';
 import { FriendRequestService } from './friend-request.service';
 import { CreateFriendRequestDto } from './dto/create-friend-request.dto';
 import { UpdateFriendRequestDto } from './dto/update-friend-request.dto';
-import { JwtAuthGuard } from '../user/Guards/jwt-auth.guard';
-import { User } from '../decorators/user.decorator';
 
 @Controller('friend-request')
 export class FriendRequestController {
@@ -50,5 +47,4 @@ export class FriendRequestController {
   RemoveFriendRequest(@Param('id') id: string, @User() user) {
     return this.friendRequestService.refuse(id, user.id);
   }
-
 }
