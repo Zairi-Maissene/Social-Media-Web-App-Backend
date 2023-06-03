@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { ForbiddenException } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,23 +7,38 @@ import { User } from '../user/entities/user.entity';
 import { CreateFriendRequestDto } from './dto/create-friend-request.dto';
 import { UpdateFriendRequestDto } from './dto/update-friend-request.dto';
 import { FriendRequest } from './entities/friend-request.entity';
-import {Reusable} from "../reusable/entities/reusable.entity";
-import {ReusableService} from "../reusable/reusable.service";
 
 @Injectable()
-export class FriendRequestService extends ReusableService<FriendRequest> {
+export class FriendRequestService {
   constructor(
     @InjectRepository(FriendRequest)
     private friendRequestEntityRepository: Repository<FriendRequest>,
     @InjectRepository(User) private userEntityRepository: Repository<User>,
-  ) {
-    super (friendRequestEntityRepository)
-  }
-  async create(createFriendRequestDto: CreateFriendRequestDto) {
+  ) {}
+  async create(createFriendRequestDto: CreateFriendRequestDto, user: User) {
 
+    const reciever = await this.userEntityRepository.findOneBy({
+      id: createFriendRequestDto.reciever_id,
+    });
 
-    return await super.create(createFriendRequestDto);
+    const RequestsList = await this.friendRequestEntityRepository.find({
+      relations: {
+        reciever: true,
+        sender: true,
+      },
+    });
+    const requestExist = RequestsList.findIndex(
+      (item) => item.reciever.id == reciever.id && item.sender.id,
+    );
 
+    if (requestExist >= 0) {
+      throw new BadRequestException(' request already sent ');
+    } else {
+      const friendRequest = new FriendRequest();
+      friendRequest.sender = user;
+      friendRequest.reciever = reciever;
+      return await this.friendRequestEntityRepository.save(friendRequest);
+    }
   }
   async refuse(userid: string, user: string) {
     const request = await this.friendRequestEntityRepository.findOne({
@@ -57,21 +68,34 @@ export class FriendRequestService extends ReusableService<FriendRequest> {
       },
     });
     if (!request) {
-      throw new NotFoundException("Request doesn't exist anymore.");
+      throw new NotFoundException();
     }
-    if (request.reciever.id !== user.id) {
+
+    if (request.reciever.id !== users[1].id) {
       throw new ForbiddenException();
     }
-    const userWithFriends = await this.userEntityRepository.findOne({
+    const recieverWithFriends = await this.userEntityRepository.findOne({
       where: { id: user.id },
       relations: ['friends'],
     });
-    console.log(userWithFriends);
-    const newFriends = userWithFriends.friends || [];
-    newFriends.push(request.sender);
+    const senderWithFriends = await this.userEntityRepository.findOne({
+      where: { id: request.sender.id },
+      relations: ['friends'],
+    });
+    console.log(recieverWithFriends);
+
+    const newRecieverFriends = recieverWithFriends.friends || [];
+    newRecieverFriends.push(request.sender);
+
+    const newSenderFriends = senderWithFriends.friends || [];
+    newSenderFriends.push(request.reciever);
+
     await this.friendRequestEntityRepository.delete(requestId);
-    const newUser = { ...user, friends: newFriends };
-    await this.userEntityRepository.save(newUser);
+    const newReciever = { ...user, friends: newRecieverFriends };
+    const newSender = { ...user, friends: newSenderFriends };
+
+    await this.userEntityRepository.save(newReciever);
+    await this.userEntityRepository.save(newSender);
   }
 
   async getAllRecieved(userId: string) {
@@ -107,7 +131,11 @@ export class FriendRequestService extends ReusableService<FriendRequest> {
       }
     });
     console.log(sentRequests.length);
-    const response = sentRequests.map((request) => request.reciever)
+    const response = recievedRequests.map((request) => ({
+      sender: request.sender,
+      requestId: request.id,
+      requestDate: request.createdAt,
+    }));
     return response;
   }
 
