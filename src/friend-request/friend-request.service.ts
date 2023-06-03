@@ -33,11 +33,11 @@ export class FriendRequestService {
   }
 
   async refuse(userid: string, user: string) {
+    console.log(userid)
     const request = await this.friendRequestEntityRepository.findOne({
-      where: [
-        { reciever: { id: userid || user } },
-        { sender: { id: userid || user } },
-      ],
+      where:
+        { reciever: { id: userid } ,
+        sender: { id: user} },
     });
 
     if (!request) {
@@ -107,13 +107,17 @@ export class FriendRequestService {
     if (!user) {
       throw new NotFoundException('Cannot find user with the specified id.');
     }
-    const userRequests = await this.friendRequestEntityRepository.find();
-    const sentRequests = [];
-    userRequests.forEach((e) => {
-      if (e.sender.id == user.id) {
-        sentRequests.push(e);
-      }
+    const userRequests = await this.friendRequestEntityRepository.find({
+      where: { sender: { id: userId } },
     });
+    if (!userRequests) {
+      return [];
+    }
+    const sentRequests = userRequests.map((request) => ({
+      reciever: request.reciever,
+      requestId: request.id,
+      requestDate: request.createdAt,
+    }));
 
     return sentRequests;
   }
