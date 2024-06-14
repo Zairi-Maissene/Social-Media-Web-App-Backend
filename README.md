@@ -19,6 +19,7 @@ This project is a backend implementation for a social media clone application us
 - **Modules**:
   - **Comment**: DTOs, entities, controller, service.
   - **Post**: DTOs, entities, controller, service.
+  - **Friend-Request**: DTOs, entities, controller, service.
   - **User**: Guards, DTOs, entities, strategy, controller, service.
 - **Reusable Components**: DTOs, entities, services.
 - **Database Seeder**: Seed initial data.
